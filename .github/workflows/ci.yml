@@ -67,6 +67,12 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+      # Set up the desired Python version using the official action (includes SSL support)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
       # Install all packages needed to build a full CPython (including the _ssl module)
       - name: Install build dependencies for Python
         run: |
@@ -89,33 +95,24 @@ jobs:
             uuid-dev \
             xz-utils \
             ca-certificates
-      # Install a full Python 3.12 from the OS packages (includes SSL support)
-      - name: Install Python 3.12 from apt
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3.12 python3.12-venv python3.12-dev
-          # Ensure pip is available
-          python3.12 -m ensurepip --upgrade
-          # Upgrade pip to the latest version
-          python3.12 -m pip install --upgrade pip
       - name: Verify SSL support in Python
         run: |
-          python3.12 - <<'PY'
+          python - <<'PY'
           import ssl, sys
           print("SSL module OK", ssl.OPENSSL_VERSION)
           PY
       - name: Install dependencies
-        run: python3.12 -m pip install -r requirements.txt
+        run: python -m pip install -r requirements.txt
       - name: Compile scripts
-        run: python3.12 -m compileall -q scripts
+        run: python -m compileall -q scripts
       - name: Run Python unit tests
-        run: python3.12 -m unittest discover -s tests -v
+        run: python -m unittest discover -s tests -v
       - name: Smoke-test read-only and dry-run commands
         run: |
-          python3.12 scripts/config-manager.py
-          python3.12 scripts/detect-hardware.py
-          python3.12 scripts/deploy.py --dry-run
-          python3.12 scripts/deploy-vms.py --dry-run
-          python3.12 scripts/gpu-setup.py
-          python3.12 scripts/power-management.py --dry-run
-          python3.12 scripts/verify.py
+          python scripts/config-manager.py
+          python scripts/detect-hardware.py
+          python scripts/deploy.py --dry-run
+          python scripts/deploy-vms.py --dry-run
+          python scripts/gpu-setup.py
+          python scripts/power-management.py --dry-run
+          python scripts/verify.py
