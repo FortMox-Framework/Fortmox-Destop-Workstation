@@ -1,0 +1,275 @@
+# Paranoid Proxmox Workstation Configuration
+# Edit this file to customize your deployment
+
+system:
+  # Type: auto (auto-detect), laptop, or desktop
+  type: auto
+
+  hostname: proxmox-workstation
+  timezone: UTC
+
+  # Enable verbose logging
+  debug: false
+
+hardware:
+  cpu:
+    # Number of vCPU cores to allocate: auto or number
+    cores: auto
+
+    # Enable IOMMU/VT-d for device isolation
+    iommu: true
+
+    # CPU frequency scaling: balanced, performance, powersave
+    scaling_governor: auto  # auto selects based on form factor
+
+  gpu:
+    # Enable GPU passthrough
+    passthrough: true
+
+    # GPU passthrough method:
+    # auto: auto-detect best method based on hardware
+    # virtio: virtual GPU (universal, lower perf)
+    # sr-iov: SR-IOV passthrough (medium perf, good isolation)
+    # vgpu: vGPU passthrough (NVIDIA, high perf)
+    # full: full GPU passthrough (best perf, one VM only)
+    method: auto
+
+    # List of GPU UUIDs to use (auto-detect if empty)
+    devices: []
+
+  storage:
+    # Enable full disk encryption
+    encryption: true
+
+    # Encryption type: luks2 (recommended), luks1
+    encryption_type: luks2
+
+    # Enable storage compression (slight CPU cost, good for space)
+    compression: false
+
+    # TRIM/Discard for SSD optimization
+    trim_enabled: true
+
+wayland:
+  # Wayland compositor: auto, hikari, woodland, dwl
+  compositor: auto
+
+  # Enable stacking window manager
+  stacking: true
+
+  # Preferred resolution (auto or specific like 1920x1080)
+  resolution: auto
+
+  # Enable HDR support if available
+  hdr: false
+
+power:
+  # Power profile: auto, balanced, performance
+  # auto: balanced on laptop, performance on desktop
+  profile: auto
+
+  # CPU turbo boost: true, false, auto
+  turbo_boost: auto
+
+  # GPU dynamic power management (laptop optimization)
+  gpu_dynamic_power: true
+
+  # Display brightness management (laptop)
+  adaptive_brightness: true
+
+  # CPU idle states (C-states)
+  # balanced: mixed C-states
+  # deep: deeper C-states for battery (slight latency)
+  # performance: minimal C-states (more power use)
+  idle_states: auto
+
+security:
+  # Hardening level: paranoid or standard
+  hardening_level: paranoid
+
+  # Enable SELinux (if available on system)
+  selinux: true
+
+  # Enable AppArmor
+  apparmor: true
+
+  # Kernel hardening options
+  kernel_hardening:
+    - dmesg_restrict: true      # Hide kernel logs from unprivileged users
+    - kptr_restrict: true       # Hide kernel pointers
+    - restrict_namespaces: true # Restrict namespaces
+    - panic_on_oops: false      # Don't panic on kernel errors
+
+  # Firewall rules
+  firewall:
+    # Default policies: DROP, REJECT, ACCEPT
+    input_policy: DROP
+    output_policy: ACCEPT
+    forward_policy: DROP
+
+    # Allow SSH from localhost only
+    ssh_localhost_only: true
+
+    # Allow Proxmox web UI from localhost
+    proxmox_ui_localhost_only: true
+
+network:
+  # Network isolation mode: shared, isolated, air-gap
+  # shared: normal network access (default)
+  # isolated: separate VLAN per VM
+  # air-gap: research VM has no network
+  isolation_mode: isolated
+
+  # DNS for VMs (0.0.0.0 = use host's)
+  dns_servers:
+    - 1.1.1.1          # Cloudflare
+    - 1.0.0.1          # Cloudflare backup
+
+  # Optional: use custom DNS
+  # dns_servers:
+  #   - 8.8.8.8         # Google DNS
+  #   - 8.8.4.4         # Google DNS backup
+
+storage_encryption:
+  # Encryption algorithm: aes-xts-plain64 (recommended)
+  cipher: aes-xts-plain64
+
+  # Key size: 256 (recommended), 512
+  key_size: 256
+
+  # PBKDF2 iterations (higher = more secure, slower)
+  pbkdf_iterations: 100000
+
+  # Separate encrypted vaults for compartments
+  vaults:
+    system:
+      enabled: true
+      path: /var/lib/vz-secure
+      access: host_only
+
+    clean_vm:
+      enabled: true
+      path: /var/lib/vz-clean
+      access: clean_vm_only
+
+    gaming_vm:
+      enabled: true
+      path: /var/lib/vz-gaming
+      access: gaming_vm_only
+
+    research_vm:
+      enabled: true
+      path: /var/lib/vz-research
+      access: research_vm_only
+      # Research VM vault is most isolated
+      encryption_key_protected: true
+
+# MicroVM Support
+# Lightweight isolated VMs for enhanced security
+microvm:
+  enabled: true
+
+  # OPNsense Firewall MicroVM - ALL traffic routed through this
+  opnsense_firewall:
+    enabled: true
+    vmid: 50
+    template_file: config/vm-templates/opnsense-microvm.yaml
+    # Deploy first - all VMs need this for proper isolation
+    priority: 1
+    # This VM routes all inter-VM traffic
+    # Enables fine-grained control beyond vLANs
+
+  # Additional OPNsense instances for extra isolation (optional)
+  additional_firewalls:
+    enabled: false
+    # Can create multiple OPNsense instances for:
+    # - Separate firewall per compartment
+    # - Different isolation levels
+    # Example configs:
+    # - opnsense-gaming-fw (dedicated for Gaming VM traffic)
+    # - opnsense-research-fw (dedicated for Research VM traffic)
+    instances: []
+
+# Virtual Machine Templates to Deploy
+# Comment out to skip deployment
+# Note: OPNsense MicroVM (if enabled) should deploy first
+vms:
+  # OPNsense MicroVM: Lightweight firewall (deploys first if enabled)
+  opnsense:
+    enabled: true   # Keep aligned with microvm.opnsense_firewall.enabled
+    template_file: config/vm-templates/opnsense-microvm.yaml
+
+  # Clean VM: Daily work, browsing, general tasks
+  clean:
+    enabled: true
+    template_file: config/vm-templates/clean-vm.yaml
+    # Routes through OPNsense if enabled
+    depends_on: opnsense
+
+  # Gaming VM: GPU-intensive workloads
+  gaming:
+    enabled: true
+    template_file: config/vm-templates/gaming-vm.yaml
+    # Routes through OPNsense if enabled
+    depends_on: opnsense
+
+  # Research VM: Isolated malware analysis
+  research:
+    enabled: true
+    template_file: config/vm-templates/research-vm.yaml
+    # Routes through OPNsense if enabled
+    depends_on: opnsense
+
+  # Tools VM: Network analysis and testing (optional)
+  tools:
+    enabled: false
+    template_file: config/vm-templates/tools-vm.yaml
+    # Routes through OPNsense if enabled
+    depends_on: opnsense
+
+# Advanced / Experimental Options
+advanced:
+  # Enable kernel module loading restrictions
+  module_loading_restrictions: true
+
+  # Enable secboot if available
+  secure_boot: false  # Not recommended with VMs
+
+  # Enable audit logging (small performance impact)
+  audit_logging: true
+
+  # Watchdog timer for automatic recovery
+  watchdog: true
+
+# Logging and Monitoring
+logging:
+  level: info  # debug, info, warn, error
+
+  # Log files to rotate
+  syslog: true
+  journal: true
+
+  # Audit log sensitive operations
+  audit_operations: true
+
+# Backup Configuration
+backup:
+  # Enable regular backups
+  enabled: false
+
+  # Backup schedule: daily, weekly, monthly
+  schedule: weekly
+
+  # Backup destination (local path or remote)
+  destination: /var/backups/proxmox
+
+  # Keep N backup versions
+  retention: 4
+
+# Development/Testing Options
+development:
+  # Enable testing mode (for configuration validation)
+  testing_mode: false
+
+  # Run deployment scripts in dry-run mode
+  dry_run: false

@@ -1,0 +1,294 @@
+# OPNsense MicroVM Template
+# Purpose: Lightweight firewall/router for VM traffic isolation
+# All VM traffic routes through this MicroVM
+# Enables traffic filtering, monitoring, and additional isolation
+
+vm:
+  name: opnsense-microvm
+  vmid: 50
+
+  # Minimal specifications for lightweight operation
+  specs:
+    cpu:
+      cores: 2
+      sockets: 1
+      type: host
+
+    memory:
+      min: 1024    # 1GB minimum
+      max: 2048    # 2GB maximum
+      balloon: false  # No memory sharing
+
+    disk:
+      size: 20G
+      storage: local-lvm
+      type: qemu
+      format: qcow2
+      cache: writethrough
+
+  # Console only - no display needed
+  display:
+    type: none
+
+  gpu:
+    # No GPU needed for firewall
+    type: none
+
+  input:
+    # Minimal input
+    - type: usb
+      device: tablet
+
+  # Network configuration - CRITICAL
+  # OPNsense sits between VMs and external network
+  network:
+    interfaces:
+      # WAN interface (external network)
+      - id: 0
+        type: virtio
+        bridge: vmbr0  # External network
+        firewall: false  # Let OPNsense handle firewall
+
+      # LAN interface (internal to VMs)
+      - id: 1
+        type: virtio
+        bridge: vmbr-internal  # Internal VM bridge
+        firewall: false
+
+      # Optional: Management interface (isolated)
+      - id: 2
+        type: virtio
+        bridge: vmbr-mgmt  # Management only
+        firewall: false
+
+  storage:
+    # Minimal storage for firewall config
+    data_volume: vz-opnsense
+
+  # Security hardening
+  security:
+    pin_vcpu: true
+    cpu_cores_pinned: [0, 1]
+
+    balloon: false
+
+    spoof_check: false  # Router needs MAC flexibility
+
+    features:
+      kvm: true
+      pmu: false
+      hpet: false
+      rtc: true
+      acpi: true
+
+  boot:
+    firmware: ovmf
+    secure_boot: false
+    order: [disk, cdrom]
+
+  # Auto-start before other VMs
+  autostart:
+    enabled: true
+    delay: 0  # Start first
+
+  limits:
+    io_operations: 5000
+    io_throughput: 50M
+
+  snapshots:
+    enabled: true
+    retention: 3
+
+# Guest OS Configuration - OPNsense BSD
+guest:
+  os: freebsd
+  distro: opnsense-24.1  # Latest stable OPNsense
+
+  # OPNsense configuration
+  opnsense:
+    # Network configuration
+    hostname: opnsense-fw
+
+    # WAN Configuration (external network)
+    wan:
+      interface: em0
+      dhcp: true  # Or static IP
+
+    # LAN Configuration (internal VM network)
+    lan:
+      interface: em1
+      ip: 192.168.100.1
+      netmask: 255.255.255.0
+      dhcp_enabled: true
+      dhcp_start: 192.168.100.100
+      dhcp_end: 192.168.100.200
+
+    # Management interface (optional)
+    mgmt:
+      interface: em2
+      ip: 192.168.99.1
+      netmask: 255.255.255.0
+      dhcp_enabled: false
+
+    # Firewall rules
+    firewall:
+      # Default policies
+      default_lan_in: pass
+      default_lan_out: pass
+      default_wan_in: block
+      default_wan_out: pass
+
+      # Rules for compartmentalization
+      rules:
+        # Clean VM <-> Gaming VM blocking
+        - name: "Block Clean-Gaming"
+          source: 192.168.100.100  # Clean VM
+          destination: 192.168.100.101  # Gaming VM
+          action: block
+
+        # Research VM complete isolation
+        - name: "Block Research WAN"
+          source: 192.168.100.102  # Research VM
+          destination: "!192.168.100.1"  # Not to OPNsense
+          action: block
+
+        # Tools VM to specific services only
+        - name: "Tools DNS"
+          source: 192.168.100.103  # Tools VM
+          destination: any
+          port: 53
+          protocol: udp
+          action: pass
+
+        - name: "Tools HTTP/HTTPS"
+          source: 192.168.100.103  # Tools VM
+          destination: any
+          port: "80,443"
+          protocol: tcp
+          action: pass
+
+    # DNS Configuration
+    dns:
+      # Forward DNS from VMs
+      dns1: 1.1.1.1
+      dns2: 1.0.0.1
+      local_domain: vm.local
+
+    # NAT Configuration
+    nat:
+      enabled: true
+      lan_to_wan: true
+
+    # Traffic monitoring
+    monitoring:
+      netflow: true  # Monitor all traffic
+      logging: true
+      log_retention: 30  # Days
+
+    # Optional: VPN
+    vpn:
+      enabled: false
+      # Can add WireGuard or OpenVPN if needed
+
+  # Minimal packages (OPNsense is pre-configured)
+  packages:
+    - tcpdump
+    - curl
+
+  # SSH for remote management
+  ssh:
+    enabled: true
+    port: 2222  # Non-standard for security
+    root_login: false
+    password_auth: false
+    pubkey_auth: true
+
+  # System hardening
+  hardening:
+    firewall_enabled: true
+    intrusion_detection: true  # Suricata/Snort
+
+# MicroVM Optimization
+microvm:
+  enabled: true
+
+  # Minimal boot time
+  boot_timeout: 30
+
+  # Shared drivers (reduces overhead)
+  io_shared: true
+
+  # Direct I/O for network performance
+  iothread: true
+
+# Advanced Firewall Configuration
+firewall_rules:
+  # Traffic isolation between VMs
+  isolated_vlan: true
+  vlan_enforcement: true
+
+  # Per-VM rules
+  per_vm_rules:
+    clean_vm:
+      ip: 192.168.100.100
+      allowed_destinations: [wan, internet]
+      blocked_destinations: [gaming_vm, research_vm]
+
+    gaming_vm:
+      ip: 192.168.100.101
+      allowed_destinations: [wan, internet]
+      blocked_destinations: [clean_vm, research_vm]
+
+    research_vm:
+      ip: 192.168.100.102
+      allowed_destinations: []  # Complete isolation
+      blocked_destinations: [wan, internet, all_other_vms]
+
+    tools_vm:
+      ip: 192.168.100.103
+      allowed_destinations: [isolated_segment, dns]
+      blocked_destinations: [wan, other_vms]
+
+  # Logging all blocked traffic
+  log_dropped_packets: true
+  alert_on_suspicious: true
+
+# Monitoring and Alerting
+monitoring:
+  # Track traffic per VM
+  per_vm_statistics: true
+
+  # Alert on unusual activity
+  anomaly_detection: true
+
+  # Log suspicious patterns
+  pattern_logging: true
+
+  # Integration with other systems
+  syslog_server: "192.168.100.1"
+  syslog_facility: local0
+
+# Boot Notes
+startup_notes: |
+  OPNsense MicroVM Configuration:
+
+  1. All VM traffic MUST route through this firewall
+  2. Default routes on VMs point to 192.168.100.1 (this VM)
+  3. VMs cannot communicate directly (OPNsense intercepts)
+  4. All traffic is logged and can be monitored
+  5. Research VM has complete network isolation
+  6. Gaming/Clean VMs can only reach WAN, not each other
+
+  Access OPNsense UI:
+  - Web UI: https://192.168.100.1 (HTTPS)
+  - SSH: ssh root@192.168.100.1 -p 2222
+
+  Default credentials (CHANGE IMMEDIATELY):
+  - Username: root
+  - Password: (set during installation)
+
+  Critical:
+  - Update default password first
+  - Configure firewall rules before production use
+  - Enable logging and monitoring
+  - Test traffic isolation before using malware analysis

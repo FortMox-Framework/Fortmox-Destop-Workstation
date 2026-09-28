@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: Go checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Test
+        run: go test ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Build and validate config
+        run: |
+          go build -o /tmp/fortmox ./cmd/fortmox
+          /tmp/fortmox config validate
+
+  build:
+    name: Build Linux ${{ matrix.goarch }}
+    needs: go
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        goarch: [amd64, arm64]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build binary
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: |
+          mkdir -p dist
+          go build -trimpath -ldflags="-s -w" -o "dist/fortmox-linux-${GOARCH}" ./cmd/fortmox
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fortmox-linux-${{ matrix.goarch }}
+          path: dist/fortmox-linux-${{ matrix.goarch }}
+          if-no-files-found: error
+          retention-days: 7
+
+  python:
+    name: Python checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Compile scripts
+        run: python -m compileall -q scripts
+      - name: Run Python unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Smoke-test read-only and dry-run commands
+        run: |
+          python scripts/config-manager.py
+          python scripts/detect-hardware.py
+          python scripts/deploy.py --dry-run
+          python scripts/deploy-vms.py --dry-run
+          python scripts/gpu-setup.py
+          python scripts/power-management.py --dry-run
+          python scripts/verify.py

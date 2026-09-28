@@ -1,0 +1,214 @@
+# Clean VM Template
+# Purpose: Daily work, browsing, general computing
+# Network: Normal internet access
+# GPU: virtIO (isolated)
+# Security: Standard hardening
+
+vm:
+  name: clean-vm
+  vmid: 100
+
+  # VM specifications
+  specs:
+    cpu:
+      cores: 4
+      sockets: 1
+      type: host  # Use host CPU model for compatibility
+
+    memory:
+      min: 4096    # 4GB minimum
+      max: 8192    # 8GB maximum
+      balloon: true
+
+    disk:
+      size: 50G
+      storage: local-lvm
+      type: qemu  # QEMU disk image
+      format: qcow2
+      cache: writethrough  # Safe for daily use
+
+  # Display and input
+  display:
+    type: virtio
+    memory: 128M
+    heads: 1
+
+  gpu:
+    # Use virtIO for isolated graphics
+    type: virtio
+
+  input:
+    - type: usb
+      device: tablet  # For mouse/trackpad
+
+  # Network configuration
+  network:
+    interfaces:
+      - id: 0
+        type: virtio
+        bridge: vmbr0  # Normal network
+        firewall: true
+
+    # Specific DNS for this VM
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+
+  # Storage
+  storage:
+    data_volume: vz-clean  # Points to clean-vm vault
+    shared_access:
+      - path: /shared/documents
+        access: read-write
+      - path: /shared/downloads
+        access: read-write
+
+  # Security hardening
+  security:
+    # Limit vCPU to prevent side-channel attacks
+    pin_vcpu: true
+
+    # No memory overcommit
+    balloon: false
+
+    # MAC address spoofing prevention
+    spoof_check: true
+
+    # Disable unnecessary VM features
+    features:
+      kvm: true
+      pmu: false     # Performance monitoring disabled
+      hpet: false    # High precision event timer off
+      rtc: true
+      acpi: true
+
+    # VM kernel hardening
+    kernel:
+      - param: "security.apparmor=1"
+      - param: "apparmor=1"
+
+  # Boot configuration
+  boot:
+    firmware: ovmf  # UEFI
+    secure_boot: false
+    order: [disk, cdrom]
+
+  # Auto-start options
+  autostart:
+    enabled: true
+    delay: 0
+
+  # Resource limits
+  limits:
+    io_operations: 10000   # IOPS limit
+    io_throughput: 100M    # MB/s limit
+
+  # Snapshots for safe testing
+  snapshots:
+    enabled: true
+    retention: 3  # Keep 3 snapshots
+
+# Guest OS Configuration (applied after VM creation)
+guest:
+  os: linux
+  distro: ubuntu-22.04  # or debian-12, fedora-39, etc
+
+  # System packages to install
+  packages:
+    # Essential
+    - qemu-guest-agent
+    - open-vm-tools
+    - htop
+    - curl
+    - wget
+
+    # Development (optional)
+    # - build-essential
+    # - git
+    # - vim
+    # - neovim
+
+    # Security tools
+    - fail2ban
+    - aide  # File integrity monitoring
+
+  # Kernel parameters for clean VM
+  kernel_params:
+    - "net.ipv4.ip_forward=0"
+    - "net.ipv6.conf.all.disable_ipv6=1"
+    - "net.ipv4.conf.default.rp_filter=1"
+
+  # Services to disable (reduce attack surface)
+  disable_services:
+    - avahi-daemon
+    - cups
+    - bluetooth
+
+  # Firewall rules (UFW)
+  firewall:
+    enabled: true
+    default_incoming: deny
+    default_outgoing: allow
+
+    rules:
+      # SSH for management (optional, disable if not needed)
+      - port: 22
+        protocol: tcp
+        allow: from_host_only
+
+      # DNS
+      - port: 53
+        protocol: udp
+        allow: outgoing
+
+      # HTTP/HTTPS
+      - port: 80
+        protocol: tcp
+        allow: outgoing
+
+      - port: 443
+        protocol: tcp
+        allow: outgoing
+
+  # User accounts
+  users:
+    - name: user
+      groups: [sudo, kvm]
+      shell: /bin/bash
+      home: /home/user
+      password: "CHANGE_ME"  # Must be changed!
+      sudo_passwordless: false
+
+    # Optional: root account
+    # - name: root
+    #   password: "CHANGE_ME"
+
+  # SSH Configuration
+  ssh:
+    enabled: true
+    port: 22
+    permit_root_login: false
+    password_auth: false  # Recommend key-only
+    pubkey_auth: true
+
+  # System hardening
+  hardening:
+    # SELinux (if using enforcing distro)
+    selinux: true
+
+    # AppArmor
+    apparmor: true
+
+    # Automatic updates
+    unattended_upgrades: true
+    auto_reboot: true
+    auto_reboot_time: "04:00"  # 4 AM
+
+    # File integrity monitoring
+    aide_enabled: true
+    aide_schedule: weekly
+
+# Logging
+logging:
+  syslog_server: "10.0.0.1"  # Optional central logging
+  syslog_facility: local0

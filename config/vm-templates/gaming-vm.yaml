@@ -1,0 +1,265 @@
+# Gaming VM Template
+# Purpose: Gaming and GPU-intensive workloads
+# Network: Normal internet access
+# GPU: Full passthrough (maximum performance)
+# Security: Hardened but performance-optimized
+
+vm:
+  name: gaming-vm
+  vmid: 101
+
+  # VM specifications (higher than clean VM)
+  specs:
+    cpu:
+      cores: 6
+      sockets: 1
+      type: host
+
+    memory:
+      min: 8192    # 8GB minimum
+      max: 16384   # 16GB maximum
+      balloon: true
+
+    disk:
+      size: 100G
+      storage: local-lvm
+      type: qemu
+      format: qcow2
+      cache: writethrough
+
+  # Display and GPU configuration
+  display:
+    type: spice  # Better for gaming than VNC
+    memory: 256M
+
+  # Looking Glass for ultra-low latency remote gaming
+  looking_glass:
+    enabled: true
+    # Looking Glass shared memory size (in MB)
+    # Larger = better quality, more memory usage
+    # 32MB minimum, 128MB+ recommended for high resolution
+    shared_memory: 256
+    # ivshmem device configuration
+    ivshmem: true
+
+  gpu:
+    # GPU Passthrough configuration
+    # Method is determined by main config (auto, full, sr-iov, vgpu)
+    # This will be templated based on actual hardware
+    type: passthrough
+    device: auto  # Auto-detect available GPU
+    vfio_binding: true
+
+    # PCIe settings for gaming performance
+    pcie:
+      multifunction: true
+      x16: true  # PCIe 4.0 x16 recommended
+
+  input:
+    - type: usb
+      device: tablet
+    - type: usb
+      device: keyboard  # Preferred for gaming
+
+  # Network configuration
+  network:
+    interfaces:
+      - id: 0
+        type: virtio
+        bridge: vmbr0  # Normal network
+        firewall: true
+
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+
+  # Storage
+  storage:
+    data_volume: vz-gaming
+    shared_access:
+      - path: /shared/games
+        access: read-write
+
+  # Security hardening (performance-aware)
+  security:
+    pin_vcpu: true
+
+    balloon: false
+
+    spoof_check: true
+
+    # Gaming-specific feature flags
+    features:
+      kvm: true
+      pmu: false     # Performance monitoring off
+      hpet: false
+      rtc: true
+      acpi: true
+      hv_relaxed: true    # Hyper-V relaxed mode for Windows gaming
+      hv_vapic: true      # APIC assist for Windows
+      hv_time: true       # Synthetic time source
+
+    # Performance tuning
+    performance:
+      cache_mode: writeback  # Better I/O for gaming
+      io_threaded: true      # Async I/O
+      discard: true          # TRIM for SSDs
+
+  # Boot configuration
+  boot:
+    firmware: ovmf
+    secure_boot: false  # May interfere with GPU drivers
+    order: [disk, cdrom]
+
+  # Auto-start options
+  autostart:
+    enabled: true
+    delay: 10  # Start after other VMs
+
+  # Performance limits (gaming needs high IOPS)
+  limits:
+    io_operations: 50000   # High IOPS for gaming
+    io_throughput: 500M    # High throughput
+
+  # Resource allocation strategy
+  allocation:
+    numa_pinning: true     # Pin to NUMA nodes for consistency
+    cpu_affinity: true     # Pin vCPUs to physical cores
+    memory_hugepages: true # 2MB or 1GB hugepages for performance
+
+  # Snapshots for safe testing
+  snapshots:
+    enabled: true
+    retention: 2
+
+# Guest OS Configuration (Windows or Linux gaming)
+guest:
+  os: windows  # or linux
+  distro: windows-11  # or ubuntu-22.04, fedora-39
+
+  # Windows-specific packages
+  packages_windows:
+    - virtio-drivers
+    - spice-guest-tools
+    - gpu-drivers  # NVIDIA/AMD drivers
+    - looking-glass-client  # Ultra-low latency remote gaming
+
+  # Linux-specific packages
+  packages_linux:
+    - qemu-guest-agent
+    - open-vm-tools
+    - vulkan-tools
+    - mesa-utils
+    - gamescope
+    - proton-ge  # For Steam games
+    - looking-glass-client  # Ultra-low latency remote gaming
+
+  # Kernel parameters for gaming
+  kernel_params:
+    - "net.ipv4.ip_forward=0"
+    - "vm.swappiness=10"        # Minimize swap use
+    - "net.ipv4.tcp_tw_reuse=1" # Reuse sockets faster
+
+  # Services to disable
+  disable_services:
+    - avahi-daemon
+    - cups
+    - bluetooth
+    - update-manager  # Manual updates preferred
+
+  # Firewall (gaming needs UDP for online play)
+  firewall:
+    enabled: true
+    default_incoming: deny
+    default_outgoing: allow
+
+    rules:
+      # Gaming services (UDP)
+      - port: 27000-27200
+        protocol: udp
+        allow: outgoing
+
+      # Steam
+      - port: 27015
+        protocol: udp
+        allow: outgoing
+
+      # Discord
+      - port: 443
+        protocol: tcp
+        allow: outgoing
+
+  # User accounts
+  users_windows:
+    - name: gamer
+      groups: [administrators]
+      password: "CHANGE_ME"
+
+  users_linux:
+    - name: gamer
+      groups: [sudo, audio, video, input]
+      shell: /bin/bash
+      password: "CHANGE_ME"
+
+  # SSH Configuration
+  ssh:
+    enabled: false  # Usually disabled for gaming VM
+
+  # System hardening (minimal, prioritize performance)
+  hardening:
+    selinux: false  # Would impact gaming performance
+    apparmor: false
+
+    # Minimal Windows Defender/antivirus
+    antivirus: false  # Causes performance issues for gaming
+
+    # Driver signature verification
+    driver_verification: false  # For gaming drivers
+
+# Detailed GPU Configuration
+gpu_config:
+  # GPU selection (auto-detected, or specify)
+  device: auto
+
+  # GPU passthrough method
+  method: auto  # Will use best available: full > vgpu > sr-iov > virtio
+
+  # VFIO configuration for full passthrough
+  vfio:
+    # GPU device IDs (auto-detected)
+    ids: []
+
+    # Audio device passthrough (often paired with GPU)
+    audio_passthrough: true
+
+    # IOMMU group preservation
+    iommu_group: true
+
+  # SR-IOV configuration (if supported)
+  sr_iov:
+    enabled: false  # Fallback if full passthrough unavailable
+    vfs: 4         # Virtual functions
+
+  # vGPU configuration (NVIDIA)
+  vgpu:
+    enabled: false  # Fallback if SR-IOV unavailable
+    profile: auto   # auto, Q2, Q4, Q8, etc.
+
+# Storage optimization for gaming
+storage:
+  # Cache settings for max performance
+  cache_policy: writeback
+
+  # I/O scheduler
+  io_scheduler: kyber  # Good for NVMe
+
+  # Disk format for SSD
+  trim_enabled: true
+
+# Logging
+logging:
+  # Reduced logging for gaming performance
+  level: warn
+
+  # Game performance telemetry
+  telemetry: false

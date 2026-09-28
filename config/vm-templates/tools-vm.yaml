@@ -1,0 +1,230 @@
+# Tools VM Template (Optional)
+# Purpose: Network analysis, penetration testing, security tools
+# Network: Isolated network segment
+# GPU: virtIO
+# Security: Hardened but performance-tuned for testing
+
+vm:
+  name: tools-vm
+  vmid: 103
+
+  specs:
+    cpu:
+      cores: 4
+      sockets: 1
+      type: host
+
+    memory:
+      min: 4096    # 4GB minimum
+      max: 8192    # 8GB maximum
+      balloon: true
+
+    disk:
+      size: 50G
+      storage: local-lvm
+      type: qemu
+      format: qcow2
+      cache: writethrough
+
+  display:
+    type: virtio
+    memory: 128M
+
+  gpu:
+    type: virtio
+
+  input:
+    - type: usb
+      device: tablet
+
+  # Network - ISOLATED
+  network:
+    interfaces:
+      - id: 0
+        type: virtio
+        bridge: vmbr-tools  # Isolated bridge, no internet access
+        firewall: true
+
+    # Static IP in isolated segment
+    static_ip: 192.168.201.10
+    gateway: 192.168.201.1
+    dns: 192.168.201.1  # Internal DNS
+
+  storage:
+    data_volume: vz-tools
+    shared_access:
+      - path: /shared/captures
+        access: read-write  # For pcap files, logs
+
+  security:
+    pin_vcpu: true
+    balloon: false
+    spoof_check: true
+
+    features:
+      kvm: true
+      pmu: false
+      hpet: false
+      rtc: true
+      acpi: true
+
+    kernel:
+      - param: "security.apparmor=1"
+      - param: "apparmor=1"
+
+  boot:
+    firmware: ovmf
+    secure_boot: false
+    order: [disk, cdrom]
+
+  autostart:
+    enabled: false
+    delay: 0
+
+  limits:
+    io_operations: 10000
+    io_throughput: 100M
+
+  snapshots:
+    enabled: true
+    retention: 5
+
+# Guest OS Configuration
+guest:
+  os: linux
+  distro: ubuntu-22.04
+
+  # Tools VM packages
+  packages:
+    - qemu-guest-agent
+    - curl
+    - wget
+    - git
+
+    # Network analysis tools
+    - tcpdump
+    - wireshark
+    - tshark
+    - nmap
+    - masscan
+    - netcat
+    - socat
+    - netstat
+
+    # Penetration testing (ethical, authorized use only)
+    - metasploit-framework
+    - burpsuite
+    - zaproxy
+
+    # DNS/HTTP tools
+    - dig
+    - host
+    - whois
+    - curl
+    - httpie
+
+    # System analysis
+    - strace
+    - ltrace
+    - systemtap
+
+    # Utilities
+    - htop
+    - iotop
+    - jq
+
+  # Kernel parameters
+  kernel_params:
+    - "net.ipv4.ip_forward=0"
+    - "net.ipv4.conf.default.rp_filter=1"
+    - "net.ipv4.tcp_timestamps=1"
+
+  # Services to disable
+  disable_services:
+    - avahi-daemon
+    - cups
+    - bluetooth
+
+  # Firewall
+  firewall:
+    enabled: true
+    default_incoming: drop
+    default_outgoing: drop
+
+    rules:
+      # DNS (internal)
+      - port: 53
+        protocol: udp
+        direction: outgoing
+        destination: 192.168.201.1
+        allow: true
+
+      # Allow traffic within isolated network
+      - destination: 192.168.201.0/24
+        protocol: tcp
+        allow: true
+
+      - destination: 192.168.201.0/24
+        protocol: udp
+        allow: true
+
+  # User accounts
+  users:
+    - name: analyst
+      groups: [sudo, tcpdump, wireshark]
+      shell: /bin/bash
+      password: "CHANGE_ME"
+
+  # SSH (from host only)
+  ssh:
+    enabled: true
+    port: 22
+    permit_root_login: false
+    password_auth: false
+    pubkey_auth: true
+
+  # Hardening
+  hardening:
+    selinux: true
+    apparmor: true
+    aide_enabled: true
+    aide_schedule: weekly
+
+# Tools VM Specific Options
+tools_specific:
+  # This VM can communicate with other VMs (controlled analysis)
+  inter_vm_enabled: true
+  allowed_targets: [clean-vm, research-vm]  # Can test these
+
+  # Network capture capabilities
+  packet_capture: true
+  promiscuous_mode: true  # Needed for packet sniffing
+
+  # Reverse engineering tools
+  reverse_engineering:
+    - ghidra
+    - ida-freeware
+    - radare2
+    - objdump
+
+# Isolated Network Configuration
+isolated_network:
+  enabled: true
+  bridge: vmbr-tools
+  gateway: 192.168.201.1
+  dhcp_enabled: false
+  static_only: true
+
+# Usage Notes
+usage_notes:
+  - "This VM is isolated from the internet"
+  - "For testing OTHER VMs, use this as attack source"
+  - "All network traffic is contained within isolated network"
+  - "Can analyze traffic from Clean VM via network sniffing"
+  - "Never expose Tools VM to internet directly"
+  - "Keep tools updated regularly"
+
+logging:
+  level: info
+  syslog: true
+  journal: true

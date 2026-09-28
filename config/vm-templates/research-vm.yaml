@@ -1,0 +1,276 @@
+# Research VM Template
+# Purpose: Malware analysis, security research, untrusted code execution
+# Network: Air-gapped (no network)
+# GPU: virtIO only (isolated)
+# Security: Maximum hardening and isolation
+
+vm:
+  name: research-vm
+  vmid: 102
+
+  # Conservative specifications
+  specs:
+    cpu:
+      cores: 4
+      sockets: 1
+      type: host
+
+    memory:
+      min: 2048    # 2GB minimum
+      max: 4096    # 4GB maximum
+      balloon: false  # No memory sharing
+
+    disk:
+      size: 50G
+      storage: local-lvm
+      type: qemu
+      format: qcow2
+      cache: writethrough
+
+  # Display only (no GPU needed)
+  display:
+    type: virtio
+    memory: 128M
+
+  gpu:
+    # Virtual GPU only - no direct device access
+    type: virtio
+
+  input:
+    - type: usb
+      device: tablet
+
+  # Network configuration - AIR-GAPPED
+  network:
+    # NO network interfaces by default
+    # For analysis, use isolated bridge if needed
+    interfaces: []  # Empty = no network
+
+    # If analysis requires isolated network:
+    # interfaces:
+    #   - id: 0
+    #     type: virtio
+    #     bridge: vmbr-research  # Isolated bridge, no external access
+    #     firewall: true
+
+  # Storage
+  storage:
+    # Research VM data is in isolated vault
+    data_volume: vz-research
+
+    # NO shared storage access
+    shared_access: []
+
+  # Maximum security hardening
+  security:
+    # Strict vCPU pinning to prevent side-channel attacks
+    pin_vcpu: true
+    cpu_cores_pinned: [0, 1, 2, 3]  # Pin to specific cores
+
+    # Memory protection
+    balloon: false        # No memory ballooning
+    memory_sharing: false # No page sharing between VMs
+
+    spoof_check: true
+
+    # Minimal VM features (reduce attack surface)
+    features:
+      kvm: true
+      pmu: false        # Performance monitoring off
+      hpet: false
+      rtc: true
+      acpi: true
+      aes: false        # No AES-NI passthrough
+      avx: false        # No AVX passthrough
+      # Remove any unnecessary CPU features
+
+    # Strict device filtering
+    device_access:
+      usb: restricted
+      pci: restricted
+      block: restricted
+
+    # vIOMMU for nested isolation
+    iommu: true
+
+    # Kernel hardening parameters
+    kernel:
+      - param: "security.apparmor=1"
+      - param: "apparmor=1"
+      - param: "panic=10"  # Auto-reboot on panic
+      - param: "kernel.modules=0"  # No module loading
+
+  # Boot configuration
+  boot:
+    firmware: ovmf
+    secure_boot: false
+    order: [disk, cdrom]
+
+  # DO NOT auto-start
+  autostart:
+    enabled: false
+    delay: 0
+
+  # Low resource limits
+  limits:
+    io_operations: 5000   # Low IOPS
+    io_throughput: 50M    # Low throughput
+
+  # Snapshots are critical for research
+  snapshots:
+    enabled: true
+    retention: 10  # Keep many snapshots for analysis
+    # Take snapshot before each analysis session
+    auto_snapshot: before_start
+
+# Guest OS Configuration
+guest:
+  os: linux
+  distro: debian-12  # Smaller, more secure base
+
+  # Minimal packages
+  packages:
+    - qemu-guest-agent
+    - htop
+    - curl
+    - wget
+    - file
+    - strings
+    - strace
+    - ltrace
+    - gdb
+    - binutils
+
+    # Analysis tools
+    - clamav
+    - volatility
+    - yara
+    - hashdeep
+
+    # Networking tools (for isolated analysis)
+    - tcpdump
+    - wireshark-cli
+    - nmap
+    - netcat
+
+  # Strict kernel parameters
+  kernel_params:
+    - "net.ipv4.ip_forward=0"
+    - "net.ipv6.conf.all.disable_ipv6=1"
+    - "net.ipv4.conf.default.rp_filter=1"
+    - "kernel.panic=10"
+    - "kernel.panic_on_oops=1"
+    - "kernel.kptr_restrict=2"
+    - "kernel.dmesg_restrict=1"
+
+  # Strict service configuration
+  disable_services:
+    - avahi-daemon
+    - cups
+    - bluetooth
+    - ssh           # No remote access!
+    - network-manager  # Use static config only
+
+  # Firewall - STRICT
+  firewall:
+    enabled: true
+    default_incoming: reject
+    default_outgoing: reject  # Explicitly block all outbound
+
+    rules: []  # No incoming, no outgoing
+
+  # User accounts
+  users:
+    - name: analyst
+      groups: [sudo]
+      shell: /bin/bash
+      password: "CHANGE_ME"
+      sudo_passwordless: false
+
+  # NO SSH
+  ssh:
+    enabled: false
+
+  # System hardening - MAXIMUM
+  hardening:
+    selinux: true       # Enforcing mode
+
+    apparmor: true
+
+    # File integrity monitoring - critical
+    aide_enabled: true
+    aide_schedule: daily
+    aide_alert: true
+
+    # Logging
+    auditd_enabled: true
+    audit_level: paranoid
+
+    # Read-only root filesystem (where possible)
+    ro_root: false  # May break analysis tools
+
+    # Disable core dumps (prevent memory analysis of host)
+    core_dumps: disabled
+
+    # Memory protection
+    aslr: true
+    stack_canaries: true
+
+# Advanced Research VM Options
+research_specific:
+  # Snapshot before executing suspicious code
+  pre_execution_snapshot: true
+
+  # Disable shutdown scripts (prevent anti-analysis)
+  shutdown_scripts_disabled: true
+
+  # Block VM communication with other VMs
+  inter_vm_blocking: true
+
+  # Maximum logging
+  process_logging: true
+  syscall_logging: true
+  file_access_logging: true
+
+  # Disconnect from network during analysis
+  network_disconnect_on_suspicious: false
+
+  # Automatic recovery on crash
+  crash_recovery: true
+  max_crash_recovery_attempts: 3
+
+# Isolated Network Configuration (optional)
+# Use if you need to analyze network behavior in isolation
+isolated_network:
+  enabled: false  # Only enable if needed
+  bridge: vmbr-research
+  gateway: 192.168.200.1
+  dhcp_start: 192.168.200.100
+  dhcp_end: 192.168.200.200
+  # All traffic logged but not routed outside
+
+# Logging and Auditing - COMPREHENSIVE
+logging:
+  level: debug  # Maximum detail for research
+
+  syslog: true
+  journal: true
+
+  # Critical: audit all syscalls
+  audit_syscalls: true
+
+  # Monitor for suspicious activity
+  suspicious_activity_logging: true
+
+  # Keep detailed logs
+  log_retention: 30  # Days
+  log_rotation: daily
+
+# IMPORTANT SECURITY NOTES:
+# 1. This VM is isolated from all network by default
+# 2. No shared storage - completely separated
+# 3. No inter-VM communication possible
+# 4. Snapshots taken before each analysis session
+# 5. Mandatory air-gap: disconnect power or disconnect network bridge
+# 6. Never assume malware is contained - always verify isolation
+# 7. Consider running on dedicated hardware for sensitive analysis

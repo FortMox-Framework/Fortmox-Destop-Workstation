@@ -1,0 +1,11 @@
+/bin/
+*.test
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.out
+/fortmox
+/dist/
