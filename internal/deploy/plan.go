@@ -1,7 +1,7 @@
 // Package deploy describes host and VM actions implied by the configuration.
 package deploy
 
-import "github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/config"
+	import "github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/config"
 
 // Plan returns the host and VM actions implied by the loaded configuration.
 func Plan(loaded *config.Loaded) []string {

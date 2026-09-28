@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/config"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/config"
 )
 
 func TestCreateArgsReadTemplateResources(t *testing.T) {

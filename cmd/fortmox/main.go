@@ -7,13 +7,13 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/config"
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/deploy"
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/gpu"
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/hardware"
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/power"
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/verify"
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/vm"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/config"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/deploy"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/gpu"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/hardware"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/power"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/verify"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/vm"
 	"github.com/spf13/cobra"
 )
 

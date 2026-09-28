@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/config"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/config"
 )
 
 // CreateArgs builds qm create arguments from the currently supported template fields.

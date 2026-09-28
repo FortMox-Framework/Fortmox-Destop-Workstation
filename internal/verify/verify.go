@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/config"
-	"github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation/internal/hardware"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/config"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/hardware"
 )
 
 // Result describes one verification check and its pass, warn, or fail status.

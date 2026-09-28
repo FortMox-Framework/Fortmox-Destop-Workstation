@@ -1,4 +1,4 @@
-module github.com/FortMoxDesktop-Team/FortmoxDestop-Workstation
+module github.com/FortMox-Framework/Fortmox-Destop-Workstation
 
 go 1.22
 
