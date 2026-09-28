@@ -67,14 +67,27 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+      - name: Install system SSL dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates libssl-dev
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements.txt
-      - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+      - name: Install system SSL dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates libssl-dev
+      - name: Install dependencies (use HTTP index to avoid SSL)
+        run: |
+          python -m pip install \
+            --index-url http://pypi.org/simple \
+            --trusted-host pypi.org \
+            --trusted-host files.pythonhosted.org \
+            -r requirements.txt
       - name: Compile scripts
         run: python -m compileall -q scripts
       - name: Run Python unit tests
