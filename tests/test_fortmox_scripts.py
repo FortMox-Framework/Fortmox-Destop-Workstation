@@ -1,12 +1,19 @@
 import copy
+import importlib.util
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from fortmox_scripts import all_templates, enabled_vms, load_config, load_template, qm_create_args
+
+POWER_SCRIPT = ROOT / "scripts/power-management.py"
+POWER_SPEC = importlib.util.spec_from_file_location("power_management", POWER_SCRIPT)
+power_management = importlib.util.module_from_spec(POWER_SPEC)
+POWER_SPEC.loader.exec_module(power_management)
 
 
 class FortmoxScriptTests(unittest.TestCase):
@@ -50,6 +57,14 @@ class FortmoxScriptTests(unittest.TestCase):
         original = copy.deepcopy(config)
         enabled_vms(config)
         self.assertEqual(config, original)
+
+    def test_power_management_without_governors_is_successful_dry_run(self):
+        with patch.object(power_management.glob, "glob", return_value=[]), patch.object(sys, "argv", [str(POWER_SCRIPT), "--dry-run"]):
+            self.assertEqual(power_management.main(), 0)
+
+    def test_power_management_without_governors_fails_when_applying(self):
+        with patch.object(power_management.glob, "glob", return_value=[]), patch.object(sys, "argv", [str(POWER_SCRIPT), "--apply"]):
+            self.assertEqual(power_management.main(), 1)
 
 
 if __name__ == "__main__":

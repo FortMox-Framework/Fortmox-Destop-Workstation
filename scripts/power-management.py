@@ -17,7 +17,7 @@ def main() -> int:
     paths = sorted(glob.glob("/sys/devices/system/cpu/cpu[0-9]*/cpufreq/scaling_governor"))
     if not paths:
         print("No CPU frequency governor controls found.")
-        return 1
+        return 0 if args.dry_run else 1
     if not args.dry_run and os.geteuid() != 0:
         parser.error("--apply requires root; re-run with sudo")
     for raw_path in paths:
