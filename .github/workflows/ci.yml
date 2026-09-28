@@ -67,27 +67,42 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-      - name: Install system SSL dependencies
+      # Install all packages needed to build a full CPython (including the _ssl module)
+      - name: Install build dependencies for Python
         run: |
           sudo apt-get update
-          sudo apt-get install -y ca-certificates libssl-dev
-      - name: Set up Python
+          sudo apt-get install -y \
+            build-essential \
+            libssl-dev \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libreadline-dev \
+            libsqlite3-dev \
+            libgdbm-dev \
+            libdb5.3-dev \
+            libbz2-dev \
+            libexpat1-dev \
+            liblzma-dev \
+            tk-dev \
+            libffi-dev \
+            uuid-dev \
+            xz-utils \
+            ca-certificates
+      - name: Set up Python (full CPython with SSL)
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements.txt
-      - name: Install system SSL dependencies
+      - name: Verify SSL support in Python
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates libssl-dev
-      - name: Install dependencies (use HTTP index to avoid SSL)
-        run: |
-          python -m pip install \
-            --index-url http://pypi.org/simple \
-            --trusted-host pypi.org \
-            --trusted-host files.pythonhosted.org \
-            -r requirements.txt
+          python - <<'PY'
+          import ssl, sys
+          print("SSL module OK", ssl.OPENSSL_VERSION)
+          PY
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
       - name: Compile scripts
         run: python -m compileall -q scripts
       - name: Run Python unit tests
