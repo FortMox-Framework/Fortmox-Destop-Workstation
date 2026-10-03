@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -39,9 +39,9 @@ jobs:
         goarch: [amd64, arm64]
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -54,7 +54,7 @@ jobs:
           mkdir -p dist
           go build -trimpath -ldflags="-s -w" -o "dist/fortmox-linux-${GOARCH}" ./cmd/fortmox
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fortmox-linux-${{ matrix.goarch }}
           path: dist/fortmox-linux-${{ matrix.goarch }}
@@ -62,45 +62,20 @@ jobs:
           retention-days: 7
 
   python:
-    name: Python checks
+    name: Python ${{ matrix.python-version }} checks
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.14"]
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
-      # Set up the desired Python version using the official action (includes SSL support)
+        uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
-      # Install all packages needed to build a full CPython (including the _ssl module)
-      - name: Install build dependencies for Python
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            libssl-dev \
-            zlib1g-dev \
-            libncurses5-dev \
-            libncursesw5-dev \
-            libreadline-dev \
-            libsqlite3-dev \
-            libgdbm-dev \
-            libdb5.3-dev \
-            libbz2-dev \
-            libexpat1-dev \
-            liblzma-dev \
-            tk-dev \
-            libffi-dev \
-            uuid-dev \
-            xz-utils \
-            ca-certificates
-      - name: Verify SSL support in Python
-        run: |
-          python - <<'PY'
-          import ssl, sys
-          print("SSL module OK", ssl.OPENSSL_VERSION)
-          PY
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Compile scripts
@@ -111,7 +86,7 @@ jobs:
         run: |
           python scripts/config-manager.py
           python scripts/detect-hardware.py
-          python scripts/deploy.py --dry-run
+          python scripts/deploy.py
           python scripts/deploy-vms.py --dry-run
           python scripts/gpu-setup.py
           python scripts/power-management.py --dry-run
