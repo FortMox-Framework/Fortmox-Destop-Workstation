@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171a17">
+  <meta name="description" content="FortMox is an alpha Proxmox workstation project for security research, gaming, and configurable virtual machines.">
+  <meta property="og:title" content="FortMox | Proxmox workstation project">
+  <meta property="og:description" content="A transparent look at the FortMox CLI, target architecture, and current implementation status.">
+  <title>FortMox | Proxmox workstation project</title>
+  <link rel="icon" type="image/png" href="assets/fortmox-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="FortMox home">
+      <img class="brand-logo" src="assets/fortmox-logo.png" alt="" width="44" height="44">
+      <span>FORTMOX<span class="brand-period">.</span></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation">
+      <span></span><span></span>
+    </button>
+    <nav id="primary-nav" class="primary-nav" aria-label="Primary navigation">
+      <a href="#status">Status</a>
+      <a href="#architecture">Architecture</a>
+      <a href="docs/index.html">Documentation</a>
+      <a class="nav-github" href="https://github.com/FortMox-Framework/Fortmox-Destop-Workstation" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> PROXMOX WORKSTATION PROJECT <span class="eyebrow-divider">/</span> ALPHA</p>
+        <h1 id="hero-title">FortMox<span class="hero-period">.</span></h1>
+        <p class="hero-lede">A configurable Proxmox workstation for research, gaming, and virtualized tools.</p>
+        <p class="hero-note">The Go CLI validates and plans today. Host deployment and VM isolation remain works in progress.</p>
+        <div class="hero-actions">
+          <a class="button button-acid" href="#start">Explore the CLI <span aria-hidden="true">↓</span></a>
+          <a class="text-link" href="docs/index.html">Browse documentation <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+
+      <figure class="topology-preview" aria-labelledby="topology-caption">
+        <div class="figure-head">
+          <span class="figure-index">FIG. 01</span>
+          <span class="figure-state"><span></span> TARGET DESIGN</span>
+        </div>
+        <svg class="topology-svg" viewBox="0 0 620 360" role="img" aria-labelledby="topology-title topology-desc">
+          <title id="topology-title">FortMox target virtual workstation layout</title>
+          <desc id="topology-desc">An intended Proxmox host connects to OPNsense and four planned virtual machines. The network paths are not configured by the current CLI.</desc>
+          <defs>
+            <pattern id="dot-grid" width="18" height="18" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="1" fill="#69716a" opacity=".36" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="620" height="360" fill="url(#dot-grid)" />
+          <path class="route route-main" d="M310 79V117M310 161V203M310 203H92V244M310 203H226V244M310 203H394V244M310 203H528V244" />
+          <path class="route route-firewall" d="M310 161V203" />
+          <rect class="host-node" x="212" y="24" width="196" height="55" rx="4" />
+          <text class="node-kicker" x="228" y="45">HYPERVISOR</text>
+          <text class="node-label" x="228" y="65">Proxmox host</text>
+          <rect class="firewall-node" x="221" y="117" width="178" height="44" rx="4" />
+          <text class="node-kicker node-dark" x="237" y="136">PLANNED FIREWALL</text>
+          <text class="node-label node-dark" x="237" y="153">OPNsense · 50</text>
+          <g class="vm-node">
+            <rect x="34" y="244" width="116" height="72" rx="4" />
+            <text class="node-kicker" x="48" y="266">VM 100</text><text class="node-label" x="48" y="290">Clean</text>
+          </g>
+          <g class="vm-node vm-node-accent">
+            <rect x="168" y="244" width="116" height="72" rx="4" />
+            <text class="node-kicker" x="182" y="266">VM 101</text><text class="node-label" x="182" y="290">Gaming</text>
+          </g>
+          <g class="vm-node vm-node-warn">
+            <rect x="336" y="244" width="116" height="72" rx="4" />
+            <text class="node-kicker" x="350" y="266">VM 102</text><text class="node-label" x="350" y="290">Research</text>
+          </g>
+          <g class="vm-node">
+            <rect x="470" y="244" width="116" height="72" rx="4" />
+            <text class="node-kicker" x="484" y="266">VM 103</text><text class="node-label" x="484" y="290">Tools</text>
+          </g>
+          <text class="diagram-foot" x="36" y="342">INTENDED NETWORK PATH · NOT CONFIGURED OR ENFORCED</text>
+        </svg>
+        <figcaption id="topology-caption"><span class="caption-mark">!</span> This is a target design, not a deployed or enforced topology.</figcaption>
+      </figure>
+      <div class="hero-index" aria-hidden="true">01 / PROJECT OVERVIEW</div>
+    </section>
+
+    <section class="status-strip" id="status" aria-label="Current implementation status">
+      <div class="status-cell"><span class="status-led led-lime"></span><span class="status-key">PROJECT</span><strong>Alpha</strong></div>
+      <div class="status-cell"><span class="status-led led-teal"></span><span class="status-key">DEPLOY</span><strong>Plan only</strong></div>
+      <div class="status-cell"><span class="status-led led-orange"></span><span class="status-key">ISOLATION</span><strong>Not enforced</strong></div>
+      <p>Never run untrusted samples until isolation is configured and independently tested.</p>
+    </section>
+
+    <section class="section section-scope" aria-labelledby="scope-title">
+      <div class="section-heading">
+        <p class="eyebrow eyebrow-dark">01 <span>/</span> WHAT EXISTS</p>
+        <h2 id="scope-title">Useful groundwork.<br><em>Honest boundaries.</em></h2>
+        <p>FortMox is an early CLI and configuration project, not an automated host installer. The status below describes behavior in the current source.</p>
+      </div>
+      <div class="scope-grid">
+        <article class="scope-item">
+          <span class="scope-number">A</span>
+          <div><h3>Inspect & validate</h3><p>Typed system configuration, VM dependency ordering, Linux hardware reporting, and read-only verification.</p><span class="scope-tag tag-live">IMPLEMENTED</span></div>
+        </article>
+        <article class="scope-item">
+          <span class="scope-number">B</span>
+          <div><h3>Plan & preview</h3><p>Host changes are shown as a plan. VM creation prints basic <code>qm create</code> arguments and is dry-run by default.</p><span class="scope-tag tag-plan">PLAN / DRY-RUN</span></div>
+        </article>
+        <article class="scope-item">
+          <span class="scope-number">C</span>
+          <div><h3>Apply selectively</h3><p>The Go power command can apply CPU governors with <code>--apply</code>. GPU, firewall, storage, and guest settings are not applied.</p><span class="scope-tag tag-limited">LIMITED APPLY</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="architecture-band" id="architecture" aria-labelledby="architecture-title">
+      <div class="architecture-content">
+        <p class="eyebrow eyebrow-dark">02 <span>/</span> INTENDED WORKSTATION</p>
+        <h2 id="architecture-title">Separate the work.<br><em>Keep the boundary explicit.</em></h2>
+        <p>Five YAML templates describe roles for a clean desktop, gaming, research, network tools, and OPNsense. Their presence does not mean networking, guest setup, or security controls are configured.</p>
+        <a class="arrow-link" href="docs/reference/architecture.html">Read the architecture notes <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="vm-list" aria-label="Virtual machine templates">
+        <div class="vm-row"><span class="vm-id">50</span><span class="vm-name">OPNsense</span><span class="vm-role">Firewall / router intent</span><span class="vm-mark mark-coral"></span></div>
+        <div class="vm-row"><span class="vm-id">100</span><span class="vm-name">Clean</span><span class="vm-role">Daily work</span><span class="vm-mark mark-lime"></span></div>
+        <div class="vm-row"><span class="vm-id">101</span><span class="vm-name">Gaming</span><span class="vm-role">GPU / Looking Glass intent</span><span class="vm-mark mark-teal"></span></div>
+        <div class="vm-row"><span class="vm-id">102</span><span class="vm-name">Research</span><span class="vm-role">Untrusted analysis intent</span><span class="vm-mark mark-coral"></span></div>
+        <div class="vm-row"><span class="vm-id">103</span><span class="vm-name">Tools</span><span class="vm-role">Network analysis intent</span><span class="vm-mark mark-lime"></span></div>
+        <p class="vm-list-note">Configured VMIDs are descriptive only; review every generated command and do not assume isolation.</p>
+      </div>
+    </section>
+
+    <section class="start-section" id="start" aria-labelledby="start-title">
+      <div class="start-intro">
+        <p class="eyebrow eyebrow-dark">03 <span>/</span> FIRST RUN</p>
+        <h2 id="start-title">Start with<br><em>read-only checks.</em></h2>
+        <p>Build the Go CLI, validate the shipped config, and inspect the plan before you consider any operation on a Proxmox host.</p>
+        <a class="arrow-link" href="docs/guides/getting-started.html">Open getting started <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="terminal-panel" aria-label="Quick start terminal commands">
+        <div class="terminal-top"><div class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></div><span>FORTMOX / QUICK START</span><span class="terminal-shell">BASH</span></div>
+        <div class="terminal-body">
+          <pre><code><span class="prompt">$</span> go build -o fortmox ./cmd/fortmox
+<span class="prompt">$</span> ./fortmox config validate
+<span class="output">config/system.yaml: ok</span>
+<span class="prompt">$</span> ./fortmox detect
+<span class="prompt">$</span> ./fortmox deploy --dry-run</code></pre>
+          <button class="copy-button" type="button" data-copy="go build -o fortmox ./cmd/fortmox\n./fortmox config validate\n./fortmox detect\n./fortmox deploy --dry-run" aria-label="Copy quick start commands">Copy commands</button>
+        </div>
+        <p class="terminal-warning"><span aria-hidden="true">!</span> VM creation with <code>--dry-run=false</code> invokes <code>qm</code>. Use only on the intended Proxmox host after review.</p>
+      </div>
+    </section>
+
+    <section class="closing-band">
+      <div><p class="eyebrow">BUILD THE WORKSTATION, VERIFY THE BOUNDARIES</p><h2>Read the source.<br>Test on disposable hardware.</h2></div>
+      <a class="button button-light" href="https://github.com/FortMox-Framework/Fortmox-Destop-Workstation" target="_blank" rel="noreferrer">View project on GitHub <span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand brand-footer" href="#top"><img class="brand-logo" src="assets/fortmox-logo.png" alt="" width="36" height="36"><span>FORTMOX<span class="brand-period">.</span></span></a>
+    <p>Open project. Alpha software. No isolation guarantees.</p>
+    <a href="https://github.com/FortMox-Framework/Fortmox-Destop-Workstation/blob/main/LICENSE" target="_blank" rel="noreferrer">License</a>
+    <span class="footer-year">FORTMOX / 2026</span>
+  </footer>
+</body>
+</html>

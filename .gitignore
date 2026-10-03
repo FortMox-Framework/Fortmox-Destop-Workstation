@@ -9,3 +9,4 @@ __pycache__/
 coverage.out
 /fortmox
 /dist/
+/_site/

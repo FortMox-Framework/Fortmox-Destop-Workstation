@@ -18,6 +18,17 @@ These are intended roles and VMIDs, not a deployed topology. The current CLI doe
 
 Planned configuration areas include IOMMU and GPU passthrough (virtIO, SR-IOV, vGPU, full), encrypted storage vaults, kernel hardening, laptop/desktop power profiles, and a Wayland compositor on the host. Their presence in YAML or a guide does not mean the CLI applies them.
 
+## Project website
+
+The static project overview and local documentation viewer are in [site](site/index.html). Build the site and render every guide, reference, and planning page with:
+
+```bash
+python -m pip install -r site/requirements.txt
+python site/build.py
+```
+
+Open `_site/index.html` to preview the complete site. GitHub Actions publishes the generated site to [GitHub Pages](https://fortmox-framework.github.io/Fortmox-Destop-Workstation/) on pushes to `main` and manual workflow runs; see [the Pages workflow](.github/workflows/pages.yml). If Pages is not enabled for this repository, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**.
+
 ## Quick start
 
 Start with the [getting-started guide](docs/guides/getting-started.md). Build the CLI from the project root:
