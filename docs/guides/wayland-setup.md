@@ -10,22 +10,19 @@ Wayland is a modern display server protocol that provides better security, perfo
 
 ## Why Wayland?
 
-| Aspect | X11 | Wayland |
-|--------|-----|---------|
-| Security | All windows see each other | Isolated window buffers |
-| Performance | Higher latency | Lower latency |
-| Memory | 50-100MB | 20-40MB |
-| Input Latency | ~10-20ms | ~2-5ms |
-| GPU Support | Software only | Native GPU acceleration |
-| Touchpad | Inconsistent | Native support |
+| Aspect | Notes |
+|--------|-------|
+| Security | Isolation properties depend on compositor, protocols, and applications. |
+| Performance and memory | Depend on hardware, compositor, drivers, and workload; not measured by FortMox. |
+| GPU and input support | Verify compatibility with the selected compositor and Proxmox host environment. |
 
 ## Compositor Comparison
 
-| Compositor | Type | Learning Curve | Performance | Use Case |
-|------------|------|---|---|---|
-| **Hikari** | Hybrid (Tiling + Stacking) | Medium | Excellent | Recommended (best of both worlds) |
-| **Woodland** | Tiling (with stacking option) | Low | Excellent | Alternative (fewer features) |
-| **dwl** | Dwm port (tiling minimal) | High | Excellent | Fallback (if others fail) |
+| Compositor | Notes |
+|------------|-------|
+| **Hikari** | Verify current project status, package availability, and Proxmox compatibility upstream. |
+| **Woodland** | Verify project status and platform compatibility upstream. |
+| **dwl** | Verify project status and platform compatibility upstream. |
 
 ## Prerequisites
 
@@ -56,7 +53,7 @@ lspci | grep -i "vga\|3d\|display"
 
 ### Overview
 
-Hikari is a hybrid compositor that supports both tiling and stacking windows. It's feature-complete, modern, and perfect for workstations.
+Hikari is a compositor project. FortMox does not package, install, or validate it on Proxmox.
 
 **Features:**
 - Hybrid tiling + stacking window management
@@ -684,5 +681,4 @@ firefox https://localhost:8006
 
 ---
 
-**Last Updated**: 2024-11-17
 **CLI status**: Wayland installation and configuration are not implemented.

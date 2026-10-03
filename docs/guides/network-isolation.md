@@ -499,11 +499,7 @@ This is normal! They're isolated. To allow controlled communication:
 
 ## Performance Impact
 
-Network isolation through OPNsense adds:
-- **Latency**: +2-5ms per hop
-- **CPU**: 5-15% (minimal MicroVM)
-- **Memory**: 1GB baseline
-- **Throughput**: No significant loss (most networks are I/O limited)
+Network isolation can affect latency, CPU, memory, and throughput. FortMox has not measured these costs; benchmark the target topology under representative load.
 
 ## Security Summary
 
@@ -516,17 +512,17 @@ Network isolation through OPNsense adds:
 5. **Monitoring**: NetFlow + Suricata IDS
 6. **Air-Gapping**: Research VM has no network
 7. **Traffic Shaping**: Prevent DoS from VMs
-8. **Logging**: All traffic logged for audit
+8. **Logging**: Configure and independently verify logging for the traffic and interfaces in scope
 
 ### Intended Result (Not Enforced by the Current CLI)
 
 Compromise of one VM:
-- ✅ Cannot directly affect other VMs
-- ✅ Cannot escape to network (firewall blocks it)
-- ✅ Cannot do distributed attacks (isolated)
-- ✅ All traffic is logged (forensic analysis possible)
+- Verify whether one VM can reach another VM or an unintended network.
+- Verify allowed and denied traffic from each relevant interface.
+- Verify log coverage and retention for the intended traffic.
+
+These are validation requirements for a separately configured network, not outcomes provided or tested by FortMox.
 
 ---
 
-**Last Updated**: 2024-11-17
 **CLI status**: Network and firewall deployment/testing are not implemented.

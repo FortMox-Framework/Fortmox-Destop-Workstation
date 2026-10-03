@@ -1,5 +1,7 @@
 > **Planning document.** Describes designs and roadmaps, not necessarily what is implemented. See [docs/README.md](../README.md) for current docs.
 
+> **Historical planning analysis.** This document describes removed shell scripts and proposed work; the commands and readiness claims below are not current. See [features and status](../reference/features.md).
+
 # FortMox Scripts - Complete Analysis & Roadmap
 ## What's Done, What's Needed, and Feature Suggestions
 

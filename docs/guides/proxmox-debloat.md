@@ -1,12 +1,12 @@
 # Proxmox VE Debloat & Lightweight Hardening
 
-> **Alpha/manual guide:** FortMox does not remove Proxmox services or packages. Review every manual change against Proxmox requirements; the performance and compatibility claims below are not verified by this project.
+> **Not a FortMox procedure:** FortMox does not remove Proxmox services or packages. The examples below are not validated and may disrupt a node. Do not disable or remove Proxmox services/packages by following this page; use the official Proxmox administration documentation and make a recovery plan first.
 
 ## Overview
 
 Proxmox VE comes with many features enabled by default that may not be necessary for a focused security workstation. This guide covers removing unnecessary services, reducing memory footprint, and streamlining the installation while maintaining core functionality.
 
-**Goal**: Achieve <3% CPU overhead from hypervisor while maintaining all critical features.
+The CPU-overhead and performance targets previously stated on this page were not measured and are withdrawn. This project has no verified debloating recipe or performance benchmark.
 
 ## Philosophy
 
@@ -41,30 +41,11 @@ pip list | wc -l
 systemctl list-units --type=service --state=running
 ```
 
-### Common Unnecessary Services to Disable
+### Proxmox Services
 
-These can safely be disabled on a focused workstation (verify they're not needed first):
+Do not treat Proxmox services as unnecessary based on their names or this page. In particular, `pvestatd`, `pvedaemon`, and `pveproxy` are core management services; disabling them can break monitoring, administration, or the web interface. FortMox provides no service-disable command.
 
-```bash
-# Mail services (unless you need local mail)
-sudo systemctl disable postfix
-sudo systemctl stop postfix
-
-# Enterprise reporting (not needed for personal setup)
-sudo systemctl disable pvestatd  # If you don't need stats collection
-
-# Optional: Disable unused hypervisor features
-# (Only if you're 100% sure you won't use them)
-# sudo systemctl disable pveproxy  # Only if you don't use web UI
-# sudo systemctl disable pvedaemon  # Only if you don't use daemon features
-```
-
-**WARNING**: Do NOT disable these - they are essential:
-- pvestatd (statistics)
-- pvedaemon (cluster/guest management)
-- pveproxy (web UI)
-- qemu (VM execution)
-- lxc (container support, if using)
+Inspect service dependencies and consult Proxmox documentation before changing any node service. Keep a tested backup and console-based recovery path available.
 
 ## Step 2: Remove Unnecessary Packages
 
@@ -501,71 +482,6 @@ ps aux | awk '{sum += $6} END {print "Total: " sum/1024 " MB"}'
 systemctl list-units --type=service --state=running | wc -l
 ```
 
-## Post-Debloat Checklist
+## Current Project Status
 
-- [ ] All services started correctly
-- [ ] VMs can still be created
-- [ ] Networking works (VMs have internet)
-- [ ] OPNsense firewall still functions
-- [ ] GPU passthrough still works (if used)
-- [ ] CPU overhead is <3%
-- [ ] Memory footprint is smaller
-- [ ] System boots normally
-
-## Monitoring After Debloat
-
-### Watch for Issues
-
-```bash
-# Check systemd failures
-systemctl --failed
-
-# Check system logs
-journalctl -xe | tail -50
-
-# Check Proxmox-specific logs
-tail -f /var/log/pve/tasks
-```
-
-## Reverting Changes
-
-If something breaks:
-
-```bash
-# Re-enable a service
-sudo systemctl enable postfix
-
-# Re-install a package
-sudo apt install proxmox-backup-client
-
-# Restore kernel parameters from backup
-sudo cp /etc/sysctl.d/99-hardening.conf /etc/sysctl.d/99-hardening.conf.bak
-# Edit file to revert changes
-sudo sysctl -p /etc/sysctl.d/99-hardening.conf
-```
-
-## Security Note
-
-Debloating reduces attack surface by removing unused code. However:
-
-1. **Keep security updates**: Always apply Proxmox and kernel updates
-2. **Monitor performance**: Watch for issues in logs
-3. **Test thoroughly**: Verify nothing critical was removed
-4. **Document changes**: Keep notes of what you disabled
-5. **Maintain backups**: Always have a recovery plan
-
-## Summary
-
-A debloated Proxmox installation achieves:
-- ✅ <3% CPU overhead
-- ✅ Reduced memory footprint
-- ✅ Smaller attack surface
-- ✅ Full VM functionality maintained
-- ✅ All security features intact
-
-The key is removing what you don't need while keeping everything critical for security research and VM management.
-
----
-
-**Last Updated**: 2024-11-17
-**CLI status**: Proxmox service/package debloating is not implemented.
+FortMox has not measured service overhead, memory reduction, or attack-surface changes. It does not provide a debloat operation or a validated rollback procedure. Leave Proxmox packages and services at their supported defaults unless you have a separately tested, version-specific administration plan.

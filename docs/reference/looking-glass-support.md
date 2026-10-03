@@ -6,14 +6,7 @@
 
 ## What is Looking Glass?
 
-**Looking Glass** is an ultra-low latency remote display technology that lets you:
-- Access your GPU-passthrough gaming VM from your Proxmox host
-- Get near-native performance (95%+ of direct GPU connection)
-- Stream gaming video with sub-5ms latency
-- Use the same keyboard/mouse as host
-- Run games over network with minimal lag
-
-**Perfect for:** Gaming VMs with full GPU passthrough
+Looking Glass is a shared-memory display project commonly used with GPU-passthrough VMs. This repository does not validate compatibility, setup, latency, or gaming performance.
 
 ---
 
@@ -30,7 +23,7 @@ These values document intended settings only; the current `fortmox vm create` co
 looking_glass:
   enabled: true
   # Looking Glass shared memory size (in MB)
-  # Larger = better quality, more memory usage
+  # This value is declarative; VM creation does not apply or validate it.
   # 32MB minimum, 128MB+ recommended for high resolution
   shared_memory: 256
   # ivshmem device configuration
@@ -45,7 +38,7 @@ display:
   memory: 256M                   # SPICE shared memory
 ```
 
-**Installed Packages (line 145, 155):**
+**Package names listed in the template (not installed by the CLI):**
 
 ```yaml
 packages_windows:
@@ -57,7 +50,7 @@ packages_linux:
 
 ---
 
-## How Looking Glass Works in FortMox
+## Example Architecture (Not Deployed by FortMox)
 
 ### Architecture
 
@@ -74,7 +67,7 @@ packages_linux:
 │  │  ├─ ivshmem Device (shared memory)          │    │
 │  │  └─ SPICE Agent (input/audio)               │    │
 │  │                                               │    │
-│  │  🎮 Gaming Performance: 95-100% native       │    │
+│  │  Performance depends on host and guest setup │    │
 │  └───────────────────────────────────────────────┘    │
 │              ▲        ▲        ▲                       │
 │              │        │        │                       │
@@ -94,11 +87,11 @@ packages_linux:
 │  │    Looking Glass Client (Proxmox Host)    │       │
 │  │    • Reads shared memory (ivshmem)        │       │
 │  │    • Decodes video frames                 │       │
-│  │    • ~5ms latency                         │       │
+│  │    • Latency not measured by FortMox        │       │
 │  │    • Fullscreen or windowed               │       │
 │  └───────────────────────────────────────────┘       │
 │              ▲                                        │
-│              │ Ultra-low latency display            │
+│              │ Display output                       │
 │              │ (Local or network)                    │
 │  ┌───────────┴──────────────────────────────┐        │
 │  │         User Interface                   │        │
@@ -125,58 +118,32 @@ packages_linux:
    ↓
 5. Decodes and displays on host screen
    ↓
-6. Result: Sub-5ms latency, near-native performance
+6. Result: Display output; performance depends on the complete configuration
 ```
 
 ---
 
-## Performance Comparison
+## Performance
 
-| Method | Latency | Performance | Use Case | Setup |
-|--------|---------|-------------|----------|-------|
-| **Native GPU** | <1ms | 100% | Direct gaming | Physical monitor |
-| **Looking Glass** | ~5ms | 95-98% | Remote gaming | Same machine |
-| **SPICE (Full)** | ~20-50ms | 70-80% | Remote access | Network |
-| **VNC** | ~100-200ms | 50-70% | Remote access | Network |
+Latency and rendering performance depend on the GPU, host/guest software, shared-memory configuration, display, and workload. FortMox has no comparative measurements or guarantees.
 
 ---
 
 ## Current Looking Glass Support in FortMox
 
-### ✅ What's Already Implemented
+### Not Implemented by FortMox
 
-**1. Gaming VM Template Pre-configured**
-- Looking Glass enabled by default
-- 256MB shared memory (suitable for 1440p/high-res)
-- ivshmem device configured
-- SPICE display server active
-
-**2. Guest Agent Installation**
-- Windows: `looking-glass-client` package
-- Linux: `looking-glass-client` package
-- Automatic installation via VM template
-
-**3. Documentation**
-- `docs/guides/looking-glass-setup.md` (453 lines)
-- Complete Windows guest setup
-- Complete Linux guest setup
-- Troubleshooting guide
-- Performance tuning
-
-**4. Host Support**
-- Proxmox VE supports ivshmem natively
-- QEMU/KVM Looking Glass ready
-- No additional host configuration needed
+The current VM creation command does not configure GPU passthrough, ivshmem, SPICE, Looking Glass software, or guest packages. The template values are declarative only. Follow current upstream Looking Glass and Proxmox documentation, and validate the entire setup independently.
 
 ---
 
-## Getting Started with Looking Glass (Tonight)
+## Manual Setup Boundary
 
 ### After FortMox Installation
 
 ```bash
-# 1. Review the generated Gaming VM command; creation is not a complete Looking Glass setup
-sudo fortmox vm create gaming --dry-run
+# Reviewing a dry-run does not configure Looking Glass or create the full VM setup.
+./fortmox vm create gaming --dry-run
 
 # 2. Install Guest OS in Gaming VM
 # Boot VM, install Windows 11 or Ubuntu
@@ -341,10 +308,10 @@ cat /etc/pve/qemu-server/101.conf | grep ivshmem
 # ivshmem: looking-glass:256
 ```
 
-### Issue: "High latency (>50ms)"
+### Issue: High latency
 
 **Solution:**
-1. Check GPU passthrough is working (should show 95%+ performance)
+1. Independently verify GPU assignment and guest driver status; FortMox defines no performance threshold.
 2. Increase shared memory size
 3. Use local display (not network)
 4. Check CPU load on Proxmox host
@@ -415,21 +382,9 @@ class LookingGlassManager:
         # Launch with appropriate flags
 ```
 
-### New Commands (Future)
+### Not Available in FortMox
 
-```bash
-# Launch Looking Glass automatically
-sudo fortmox-gpu-lg-launch       # Auto-launch for gaming VM
-
-# Configure Looking Glass
-sudo fortmox-gpu-lg-config       # Interactive configuration
-
-# Monitor performance
-sudo fortmox-gpu-lg-monitor      # Real-time latency monitoring
-
-# Connection manager
-sudo fortmox-gpu-lg-connect      # Show connection status
-```
+There are no `fortmox-gpu-lg-*` commands, GUI controls, automatic launch, or metrics integration in the current project.
 
 ### GUI Integration (Phase 2+)
 
@@ -442,24 +397,9 @@ The GTK Desktop GUI will include:
 
 ---
 
-## Performance Metrics: What to Expect
+## Performance
 
-### Typical Gaming VM Performance
-
-```
-GPU Passthrough + Looking Glass:
-├─ Latency: 3-8ms (ultra-responsive)
-├─ Performance: 95-99% of native
-├─ FPS: Limited by GPU, not display
-├─ CPU usage: 5-10% (Proxmox host)
-└─ Network: Works over LAN (recommended)
-
-Example Game Performance:
-├─ 1080p/60fps:   Excellent (minimal overhead)
-├─ 1440p/144fps:  Excellent (GPU limited, not latency)
-├─ 4K/60fps:      Very Good (shared memory: 512MB+)
-└─ Native display: Identical to directly connected monitor
-```
+FortMox has not measured Looking Glass latency, frame rate, CPU usage, or resolution limits. Results depend on the GPU, host and guest software, shared-memory settings, and workload.
 
 ---
 
@@ -467,7 +407,7 @@ Example Game Performance:
 
 Looking Glass configuration is not applied by FortMox. This reference and the linked setup guide are manual guidance; they do not certify the Gaming VM template, guest setup, SPICE, ivshmem, latency, or guest OS compatibility.
 
-### 🔜 Future Enhancement
+### Possible Future Work (Not Committed)
 
 - Automatic launch from GUI
 - Performance auto-optimization
@@ -480,31 +420,17 @@ Looking Glass configuration is not applied by FortMox. This reference and the li
 
 ## Commands Summary
 
-### Install & Run (Tonight)
+### Manual Setup
 
-```bash
-# On Gaming VM (Windows - Run as Admin)
-# Download and run: looking-glass-host-setup.exe
-# https://github.com/looking-glass/looking-glass/releases
-
-# On Gaming VM (Linux)
-sudo apt-get install looking-glass-client
-sudo systemctl start looking-glass-host
-sudo systemctl enable looking-glass-host
-
-# On Proxmox Host
-apt-get install looking-glass-client
-looking-glass-client spice://localhost:5900    # Use VM IP in practice
-```
+Use current upstream Looking Glass and Proxmox documentation. The commands in older copies of this reference are not a validated or complete installation procedure.
 
 ### Configuration Files
 
 ```bash
-# Gaming VM config (auto-configured)
+# Example Proxmox VM path; not created or auto-configured by FortMox
 /etc/pve/qemu-server/101.conf                # Gaming VM (vmid: 101)
-# Contains: ivshmem device, spice settings
 
-# FortMox gaming template (auto-configured)
+# FortMox template values are declarative only
 config/vm-templates/gaming-vm.yaml           # Shared memory size, ivshmem
 ```
 

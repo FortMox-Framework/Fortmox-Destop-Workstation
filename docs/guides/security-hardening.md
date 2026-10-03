@@ -735,5 +735,4 @@ sudo systemctl restart auditd
 
 ---
 
-**Last Updated**: 2024-11-17
 **CLI status**: Host security hardening is not implemented.

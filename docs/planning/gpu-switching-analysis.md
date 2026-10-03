@@ -4,7 +4,7 @@
 
 ## Executive Summary
 
-**Current Status:** The `gpu-setup.sh` script provides **limited GPU switching capabilities**.
+**Historical analysis:** The shell-script assessment below predates the current Go CLI and describes removed `gpu-setup.sh` behavior. Current status: `fortmox gpu` prints a strategy plan only; `auto` selects virtIO. It does not configure devices or switch modes. See [features and status](../reference/features.md).
 
 **Current Capabilities:**
 - ✅ GPU detection (NVIDIA, AMD, Intel)

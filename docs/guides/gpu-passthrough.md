@@ -8,12 +8,14 @@ This guide describes possible GPU acceleration methods on Proxmox VE, from virtI
 
 ## GPU Methods Comparison
 
-| Method | Performance | Isolation | Sharing | Use Case | Latency |
-|--------|-------------|-----------|---------|----------|---------|
-| **virtIO** | 30-50% native | Excellent | Multiple VMs | Web, Office, Research | High (~100ms) |
-| **SR-IOV** | 70-90% native | Good | Multiple VMs | Workstation, Light Gaming | Medium (~20ms) |
-| **vGPU** | 80-95% native | Good | Multiple VMs | Professional, Gaming | Medium (~15ms) |
-| **Full Passthrough** | 95-100% native | Excellent | 1 VM only | Gaming, AI/ML | Very Low (<5ms) |
+| Method | Availability | FortMox support |
+|--------|--------------|-----------------|
+| **virtIO** | Depends on the virtual display and guest configuration | Strategy planning only; no VM changes |
+| **SR-IOV** | Requires compatible GPU, firmware, drivers, and software | Strategy planning only; no device configuration |
+| **vGPU** | Requires compatible hardware and host/guest software; licensing may apply | Strategy planning only; no device configuration |
+| **Full Passthrough** | Requires suitable IOMMU groups and host/guest configuration | Strategy planning only; no VFIO binding or VM assignment |
+
+Performance, compatibility, isolation, and latency vary by system. FortMox has not benchmarked or certified any GPU method.
 
 ## Prerequisites
 
@@ -253,7 +255,7 @@ This method requires licensing. See NVIDIA documentation for:
 
 ### Use Cases
 
-- Gaming with maximum performance (95-100% native)
+- Gaming workloads where a separately configured passthrough setup is appropriate; FortMox provides no performance guarantee.
 - AI/ML training
 - Heavy compute workloads
 - Only 1 VM can use GPU at a time
@@ -626,14 +628,10 @@ glxgears
 
 ## Summary
 
-- **virtIO**: 30-50% performance, easy, universal
-- **SR-IOV**: 70-90% performance, good isolation, modern GPUs
-- **vGPU**: 80-95% performance, requires licensing
-- **Full Passthrough**: 95-100% performance, gaming-ready
+- **virtIO, SR-IOV, vGPU, and full passthrough**: Availability and performance depend on the hardware and software stack; FortMox does not configure or benchmark these methods.
 
-For FortMoxDesktop Gaming VM: Use **Full GPU Passthrough**
+Choose a method only after checking current hardware/vendor documentation and independently validating the host and guest configuration.
 
 ---
 
-**Last Updated**: 2024-11-17
 **CLI status**: Strategy planning only; GPU configuration is not implemented.

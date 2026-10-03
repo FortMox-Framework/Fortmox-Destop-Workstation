@@ -1,8 +1,10 @@
-# Simple Proxmox Installation Guide - Step by Step
+# Install Proxmox VE
+
+> **Important:** FortMox does not install Proxmox and this repository does not certify a Proxmox host install. Use the current [official Proxmox VE download and installation documentation](https://www.proxmox.com/en/downloads). Version-specific download commands have been retired; do not use a pinned installer image from this page.
 
 ## Overview
 
-This guide will install Proxmox VE on your Fedora Atomic host in **simple, easy steps**.
+Install Proxmox VE only on hardware you intend to dedicate to the hypervisor. Installing it erases the selected target disk. Fedora Atomic is not a supported Proxmox host or a prerequisite for these steps.
 
 **Time needed**: ~2 hours total
 - Download + USB creation: 20 minutes
@@ -98,8 +100,7 @@ Do this on another computer with internet and a USB drive handy.
 mkdir -p ~/proxmox-download
 cd ~/proxmox-download
 
-# Download Proxmox VE 8.1
-wget https://enterprise.proxmox.com/iso/proxmox-ve_8.1-2_amd64.iso
+# Download the current Proxmox VE ISO from the official downloads page linked above.
 
 # Wait for download (1-2 GB, so 5-15 minutes depending on speed)
 # You'll see progress bar
@@ -108,7 +109,7 @@ wget https://enterprise.proxmox.com/iso/proxmox-ve_8.1-2_amd64.iso
 ### Option B: Download from Browser (Windows/Mac)
 
 1. Go to: https://www.proxmox.com/en/downloads/category/proxmox-virtual-environment
-2. Click "Proxmox VE 8.1"
+2. Select the current Proxmox VE release.
 3. Download the ISO file
 4. Save to computer
 
@@ -116,7 +117,7 @@ wget https://enterprise.proxmox.com/iso/proxmox-ve_8.1-2_amd64.iso
 
 ## Step 4: Create Bootable USB Drive
 
-**ON ANOTHER COMPUTER** (not your Fedora Atomic host)
+**On a separate computer** (not the Proxmox target host)
 
 ### On Linux:
 
@@ -136,7 +137,7 @@ lsblk
 sudo umount /dev/sdb1
 
 # 4. Write ISO to USB (REPLACE sdb with YOUR device!)
-sudo dd if=~/proxmox-download/proxmox-ve_8.1-2_amd64.iso of=/dev/sdb bs=4M status=progress
+sudo dd if=~/proxmox-download/<current-proxmox-ve-iso>.iso of=/dev/sdb bs=4M status=progress
 
 # Wait for completion (you'll see: "copied X bytes")
 
@@ -171,7 +172,7 @@ echo "✓ USB bootable drive created!"
    ```
 4. Write ISO:
    ```bash
-   sudo dd if=~/Downloads/proxmox-ve_8.1-2_amd64.iso of=/dev/rdisk2 bs=4m
+   sudo dd if=~/Downloads/<current-proxmox-ve-iso>.iso of=/dev/rdisk2 bs=4m
    ```
 5. Eject:
    ```bash
@@ -180,7 +181,7 @@ echo "✓ USB bootable drive created!"
 
 ---
 
-## Step 5: Prepare Your Fedora Atomic Host
+## Step 5: Prepare the Dedicated Proxmox Target Host
 
 **On your Fedora Atomic computer:**
 
@@ -231,7 +232,7 @@ sudo shutdown -h now
 **When you see the Proxmox boot screen:**
 
 ```
-Proxmox VE 8.1 Installer
+Current Proxmox VE installer
 ├─ Proxmox VE (Graphical)      ← SELECT THIS
 ├─ Proxmox VE (Terminal UI)
 └─ Boot without installing
@@ -375,7 +376,7 @@ Wait for it to boot (30-60 seconds)
 After reboot, you'll see a login screen:
 
 ```
-Proxmox VE GNU/Linux 8.1 tty1
+Proxmox VE GNU/Linux tty1
 
 proxmox login: _
 ```
@@ -460,7 +461,7 @@ You should see:
 
 ## Success! 🎉
 
-Proxmox is now installed and running on your Fedora Atomic host!
+Proxmox is now installed and running on the dedicated target host.
 
 **Next step**: Deploy FortMoxDesktop (see next guide)
 
@@ -565,7 +566,7 @@ Once Proxmox is installed:
 
 ## That's It!
 
-Proxmox is now running on your Fedora Atomic host.
+Proxmox is now running on the dedicated target host.
 
 Next: **Deploy FortMoxDesktop** (see docs/guides/deploy-fortmox.md)
 
@@ -573,6 +574,5 @@ Questions? Just ask! 🚀
 
 ---
 
-**Last Updated**: 2024-11-17
 **Difficulty**: Easy (just follow steps)
 **Support**: Refer to troubleshooting section if stuck

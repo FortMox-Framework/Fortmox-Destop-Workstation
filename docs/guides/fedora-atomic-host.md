@@ -8,4 +8,4 @@ go run ./cmd/fortmox config validate
 go run ./cmd/fortmox detect
 ```
 
-The old walkthrough used hard-coded workstation paths and shell scripts that have since been removed. It is retained as [historical material](../archive/fedora-atomic-host-legacy.md). For a current install path, use [Getting Started](getting-started.md).
+The former Fedora Atomic walkthrough used hard-coded paths and removed shell scripts. For the current CLI entry point, use [Getting Started](getting-started.md); for installing Proxmox, follow the upstream link in [Install Proxmox](install-proxmox.md).

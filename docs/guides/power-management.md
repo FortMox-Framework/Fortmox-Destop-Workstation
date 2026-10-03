@@ -81,17 +81,7 @@ grep -r "intel_pstate" /sys/devices/system/cpu/intel_pstate/
 echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo  # Enable turbo
 echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo  # Disable turbo
 
-# Make persistent
-sudo nano /etc/sysctl.d/99-power.conf
-```
-
-Add to `/etc/sysctl.d/99-power.conf`:
-
-```sysctl
-# CPU Turbo Boost (0 = on, 1 = off)
-kernel.cpu.turbo_boost = 0  # Laptop
-# kernel.cpu.turbo_boost = 1  # Desktop (off = performance)
-```
+Turbo controls are driver- and platform-specific. Do not use the example sysctl key `kernel.cpu.turbo_boost`; it is not a standard Linux sysctl. Consult CPU-vendor and distribution documentation for supported controls.
 
 ### Method 2: Using TLP (Recommended for Laptops)
 
@@ -584,14 +574,14 @@ upower -e > baseline.txt
 
 ### With Proxmox (VMs idle)
 
-Expected: **90%+ of bare metal**
+FortMox has not measured battery life relative to bare metal. Record repeatable measurements on the same hardware and workload before drawing a comparison.
 
 ```bash
 # Boot into Proxmox with minimal VMs
 # Run same battery test
 # Should see similar results
 
-# If worse than 90%, check:
+# If battery use changes unexpectedly, inspect the platform's power-management services and kernel driver state:
 systemctl status tlp  # Is TLP running?
 cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor  # Governor is powersave?
 grep MHz /proc/cpuinfo  # Are frequencies reducing?
@@ -618,7 +608,7 @@ grep MHz /proc/cpuinfo  # Are frequencies reducing?
 # Disk: Performance mode
 # Screen: Full brightness
 # Network: No power saving
-# Expected: Maximum performance, minimal power draw overhead
+# Expected behavior is hardware- and workload-dependent; FortMox has not measured it.
 ```
 
 ## Troubleshooting
@@ -666,5 +656,4 @@ cpuunits: 1024
 
 ---
 
-**Last Updated**: 2024-11-17
 **CLI status**: CPU governor profiles only; other power controls are not implemented.

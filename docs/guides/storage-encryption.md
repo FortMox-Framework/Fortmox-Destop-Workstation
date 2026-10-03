@@ -1,6 +1,6 @@
 # Storage Encryption & Secure Data Management
 
-> **Alpha/manual guide:** The CLI does not create LUKS devices, encrypted vaults, or encryption keys. Performance and security claims below are targets, not FortMox test results.
+> **Manual and potentially destructive:** The CLI does not create LUKS devices, encrypted vaults, or encryption keys. These commands are examples, not a reviewed production procedure. `luksFormat` destroys data on the selected device; confirm device identity, backups, recovery keys, and Proxmox storage behavior before any manual operation.
 
 ## Overview
 
@@ -10,9 +10,9 @@ This guide covers implementing LUKS2 encryption for VM storage, ensuring data pr
 
 ## Key Principles
 
-1. **Hardware Acceleration**: AES-NI used for wire-speed encryption (no CPU overhead)
+1. **Hardware Acceleration**: Hardware support may accelerate encryption; it does not eliminate CPU cost.
 2. **Key Management**: Separate encryption keys per vault
-3. **Performance**: <1% CPU overhead with hardware acceleration
+3. **Performance**: Depends on hardware, cipher, storage, and workload; not measured by FortMox.
 4. **Flexibility**: Different encryption levels for different threat levels
 
 ## Part 1: Preparation
@@ -280,7 +280,7 @@ iostat -x 1 10  # Before and after encryption comparison
 # CPU usage
 top -p $(pgrep cryptd)
 
-# Should see <1% CPU with AES-NI
+# Measure on the target host; FortMox provides no expected CPU-overhead threshold.
 ```
 
 ### Enable Caching
@@ -413,7 +413,7 @@ iotop
 # Per-device encryption overhead
 iostat -dxm 1 | grep sdb  # Watch encrypted device
 
-# Should show <5% additional latency
+# Measure on the target host; FortMox provides no expected latency threshold.
 ```
 
 ### Automated Decryption Check
@@ -529,9 +529,9 @@ sudo cryptsetup luksDump /dev/sdb | grep "Key Slot"
 
 ### Performance Impact
 
-- **CPU**: <1% with AES-NI
+- **CPU**: Not benchmarked by FortMox; measure on the target workload.
 - **Throughput**: <5% reduction
-- **Latency**: <1ms additional
+- **Latency**: Not benchmarked by FortMox; measure on the target workload.
 - **Result**: No practical performance loss
 
 ### Security Posture
@@ -544,5 +544,4 @@ sudo cryptsetup luksDump /dev/sdb | grep "Key Slot"
 
 ---
 
-**Last Updated**: 2024-11-17
 **CLI status**: Storage encryption and vault management are not implemented.

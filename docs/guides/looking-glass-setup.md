@@ -7,8 +7,8 @@
 **Looking Glass** is an ultra-low latency remote display solution for QEMU/KVM VMs. It provides nearly native gaming performance when accessing a GPU-passthrough VM over the network from your Proxmox host.
 
 ### Key Features
-- **Ultra-low latency**: Sub-5ms latency (comparable to native display)
-- **High performance**: Minimal CPU overhead
+- **Shared-memory display**: Uses a configured shared-memory device between host and guest
+- **Performance**: Depends on GPU, guest, host, and display configuration; not benchmarked here
 - **Remote access**: Access gaming VM from any network device
 - **Secure**: Runs locally on same machine or trusted network
 - **Cross-platform**: Windows and Linux guest support
@@ -74,7 +74,7 @@ dpkg -l | grep looking-glass
 
 ### 3. Configure Shared Memory
 
-The ivshmem device is automatically configured in the VM template. For manual setup:
+The current VM creation command does not configure the ivshmem device. Any setup must be performed and verified manually:
 
 ```xml
 <!-- In VM XML configuration -->
@@ -84,7 +84,7 @@ The ivshmem device is automatically configured in the VM template. For manual se
 </ivshmem>
 ```
 
-The shared memory size is configured in `gaming-vm.yaml`:
+The `gaming-vm.yaml` template contains settings that the current VM creation command does not apply. Shared-memory sizing must be selected and configured manually:
 - **32MB minimum** - Low resolution/quality
 - **64MB** - 1080p comfortable
 - **128MB** - 1440p recommended
@@ -374,13 +374,9 @@ sudo netstat -tuln | grep LISTEN
 
 ## Comparison: Display Methods
 
-| Method | Latency | Performance | Setup | Security |
-|--------|---------|-------------|-------|----------|
-| **Looking Glass** | <5ms | 95-100% | Moderate | Good (local) |
-| **SPICE** | 20-50ms | 85-95% | Simple | Good |
-| **VNC** | 50-100ms | 70-85% | Simple | Fair |
-| **RDP** | 30-80ms | 80-90% | Simple | Excellent |
-| **Physical Monitor** | 0ms | 100% | Direct | N/A |
+| Method | Notes |
+|--------|-------|
+| **Looking Glass, SPICE, VNC, RDP, physical display** | Latency, performance, and security depend on configuration and workload; FortMox has not compared these methods. |
 
 ## Security Considerations
 

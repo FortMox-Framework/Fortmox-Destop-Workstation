@@ -1,6 +1,6 @@
 # Architecture & Design Philosophy
 
-> **Target design, not current implementation.** The CLI does not yet apply the hardening, encryption, Wayland, network-isolation, or full GPU features shown below. See [features and status](features.md) for implemented behavior.
+> **Design proposal, not deployed architecture.** The diagrams and settings below describe intended outcomes only. FortMox does not configure host hardening, encryption, Wayland, VM network isolation, or GPU assignment. A VM dependency on OPNsense does not route traffic through it. See [features and status](features.md) for current behavior.
 
 ## System Overview
 
@@ -70,12 +70,8 @@
 
 ## Universal Laptop/Desktop Design
 
-### Automatic Detection
-The current read-only `fortmox detect` command reports:
-- **Form Factor**: Laptop (battery detected) vs Desktop (AC only)
-- **CPU**: Intel vs AMD (affects IOMMU naming)
-- **GPU**: Available GPUs and passthrough capabilities
-- **Storage**: SSD vs HDD (affects encryption overhead)
+### Current Detection Scope
+The read-only `fortmox detect` command reports CPU model and logical CPU count, virtualization flags, whether IOMMU groups are present, PCI display devices reported by `lspci`, and a form-factor estimate from Linux DMI data or a battery device. It does not determine GPU passthrough compatibility, storage type, or encryption overhead. Missing Linux interfaces or tools can limit the report.
 
 ### Laptop-Specific Optimizations
 ```yaml
@@ -169,9 +165,9 @@ Research VM (air-gapped)
   └──→ Isolated storage
 ```
 
-## GPU Passthrough Strategy
+## GPU Options in the Target Design
 
-All GPU methods supported with intelligent fallback:
+The methods below are design options, not configured features. FortMox's `gpu` command prints a strategy plan only; `auto` currently selects virtIO. It does not check device compatibility, bind drivers, or assign a GPU to a VM.
 
 ### Method 1: virtIO GPU (Most Compatible)
 - Virtual GPU rendered by host
@@ -196,18 +192,6 @@ All GPU methods supported with intelligent fallback:
 - Maximum performance (native gaming)
 - One GPU per VM limitation
 - Use Case: Gaming VM (preferred when possible)
-
-### Automatic Method Selection
-```
-if gpu_count >= 2:
-  method = full_passthrough  # Each VM gets own GPU
-elif gpu_supports_vgpu:
-  method = vgpu              # NVIDIA cards
-elif gpu_supports_sr_iov:
-  method = sr_iov            # AMD/Intel SR-IOV capable
-else:
-  method = virtio            # Universal fallback
-```
 
 ## Security Hardening Layers
 
@@ -248,7 +232,7 @@ else:
 
 ## Declarative Configuration
 
-All system settings are in `config/system.yaml`:
+`config/system.yaml` contains both consumed settings and planned or currently inert fields. YAML parsing and validation do not apply those settings:
 
 ```yaml
 system:
@@ -283,27 +267,13 @@ vms:
   templates: [clean, gaming, research, tools]
 ```
 
-This YAML is processed by the config management layer and translated into concrete system configurations.
+Only behavior documented in [features and status](features.md) is implemented. Treat other fields in this example as design intent, not a host configuration recipe.
 
 ## Performance Characteristics
 
-### Expected Performance Impact
+### Performance Claims
 
-**Hypervisor Overhead**: <3% CPU
-- Proxmox minimal (debloated)
-- Kernel hardening: negligible with hardware support
-- Encryption: 0% with AES-NI (hardware accelerated)
-
-**GPU Performance**: Near-native
-- Full passthrough: 98-100% native performance
-- SR-IOV: 95-98% native performance
-- vGPU: 90-95% native performance
-- virtIO: 60-80% (for low-perf needs)
-
-**Battery Life**: 90%+ of bare metal
-- Power management: hardware-managed
-- Idle efficiency: equivalent to native
-- Active performance: same as native when needed
+FortMox has not measured hypervisor overhead, GPU performance, encryption cost, or battery life. Results depend on hardware, drivers, configuration, and workload; no performance figures are guaranteed by this project.
 
 ---
 

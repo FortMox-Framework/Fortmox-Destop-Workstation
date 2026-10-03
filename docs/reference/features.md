@@ -30,4 +30,4 @@ fortmox gpu --method auto
 fortmox power balanced
 ```
 
-See the [quick reference](quick-reference.md) for build commands and opt-in operations. Historical feature promises are preserved in the [archive](../archive/features-legacy.md), not as current implementation claims.
+See the [quick reference](quick-reference.md) for build commands and opt-in operations. Historical feature claims are not part of the current support boundary.

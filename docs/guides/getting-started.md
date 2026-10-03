@@ -35,4 +35,4 @@ These commands do not mutate host settings. Proxmox VM and firewall checks are s
 
 `deploy` currently prints a plan only. VM creation is dry-run by default; `./fortmox vm create --dry-run=false` invokes `qm create` and must only be used on the intended Proxmox host after reviewing the output. The generated VM commands are a starting implementation and do not apply every setting in each template.
 
-For Proxmox installation steps, see [install-proxmox](install-proxmox.md). For current command coverage and limitations, see [features](../reference/features.md) and [quick reference](../reference/quick-reference.md). Historical entry pages are under [archive](../archive/).
+For Proxmox installation guidance, see [install-proxmox](install-proxmox.md). For current command coverage and limitations, see [features](../reference/features.md) and [quick reference](../reference/quick-reference.md).

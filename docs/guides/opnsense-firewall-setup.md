@@ -4,13 +4,13 @@
 
 ## Overview
 
-OPNsense is a lightweight, open-source firewall/router that runs as a MicroVM on your Proxmox host. All VM traffic flows through OPNsense, enabling fine-grained traffic control and isolation between VMs beyond traditional VLANs.
+OPNsense is an open-source firewall/router that can be run as a VM on Proxmox. The topology below is an example only: FortMox does not attach VM interfaces, route traffic through OPNsense, or enforce isolation.
 
 ### Key Benefits
 
-- **Complete VM Isolation**: Block direct communication between VMs
-- **Centralized Traffic Control**: All traffic flows through single point
-- **Deep Monitoring**: Track every packet sent/received by each VM
+- **Possible outcome after independent configuration**: Block selected VM communication
+- **Possible outcome after independent configuration**: Route selected traffic through a firewall
+- **Optional monitoring**: Available when OPNsense and its interfaces are configured
 - **Flexible Compartmentalization**: Create custom rules per VM
 - **Lightweight**: MicroVM uses minimal resources (1-2GB RAM, 2 vCPU)
 - **Advanced Features**: IDS/IPS, logging, traffic shaping, NAT
@@ -49,7 +49,7 @@ OPNsense is a lightweight, open-source firewall/router that runs as a MicroVM on
 │  │  Gateway: 192.168.100.1 (OPNsense)        │ │
 │  └────────────────────────────────────────────┘ │
 │                                                  │
-│  All traffic between VMs goes through OPNsense! │
+│  Intended traffic path; not configured by FortMox │
 │                                                  │
 └──────────────────────────────────────────────────┘
        │
@@ -64,12 +64,8 @@ OPNsense is a lightweight, open-source firewall/router that runs as a MicroVM on
 ### 1. Download OPNsense ISO
 
 ```bash
-# On Proxmox host
-cd /var/lib/vz/template/iso/
-wget https://mirrors.evowise.com/opnsense/releases/24.1/OPNsense-24.1-dvd-amd64.iso
-
-# Or alternative mirror
-wget https://ftp.opnsense.org/releases/24.1/OPNsense-24.1-dvd-amd64.iso
+# Download the current installer from https://opnsense.org/download/ and verify
+# it using the checksums/signatures published by OPNsense.
 ```
 
 ### 2. Create OPNsense MicroVM
@@ -96,7 +92,7 @@ qm set 50 -net2 virtio,bridge=vmbr-mgmt  # Management (optional)
 qm set 50 -scsi0 local-lvm:100,cache=writethrough
 
 # Set CD-ROM for OPNsense ISO
-qm set 50 -ide2 /var/lib/vz/template/iso/OPNsense-24.1-dvd-amd64.iso,media=cdrom
+qm set 50 -ide2 /var/lib/vz/template/iso/<current-opnsense-installer>.iso,media=cdrom
 ```
 
 ### 3. Boot and Install OPNsense

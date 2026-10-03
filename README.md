@@ -8,11 +8,11 @@ A Proxmox workstation project for security research, malware analysis and gaming
 
 | VM | ID | Purpose | Intended network |
 |----|----|---------|---------|
-| OPNsense (MicroVM) | 50 | Firewall/router for all traffic | Uplink |
-| Clean | 100 | Daily work, browsing | Via OPNsense |
-| Gaming | 101 | GPU passthrough + Looking Glass | Via OPNsense |
+| OPNsense (MicroVM) | 50 | Intended firewall/router VM | Uplink (not configured by the CLI) |
+| Clean | 100 | Daily work, browsing | Intended via OPNsense (not configured) |
+| Gaming | 101 | GPU passthrough + Looking Glass | Intended via OPNsense (not configured) |
 | Research | 102 | Malware analysis | No network (intended only; not enforced) |
-| Tools | 103 | Network analysis and testing | Isolated |
+| Tools | 103 | Network analysis and testing | Intended isolated network (not configured) |
 
 These are intended roles and VMIDs, not a deployed topology. The current CLI does not configure bridges, OPNsense routing, or VM network isolation.
 
@@ -49,7 +49,6 @@ go build -o fortmox ./cmd/fortmox
     ├── guides/                  # how-to: install, deploy, GPU, firewall, hardening
     ├── reference/               # architecture, features, quick reference
     ├── planning/                # roadmaps and designs (Go CLI, GPU tool)
-    └── archive/                 # superseded entry pages and historical notes
 ```
 
 ## Go CLI

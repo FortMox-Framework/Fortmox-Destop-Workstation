@@ -1,5 +1,5 @@
-# Paranoid Proxmox Workstation Configuration
-# Edit this file to customize your deployment
+# Target-design configuration. Many fields are not applied by the CLI; see
+# docs/reference/features.md before treating any value as active host behavior.
 
 system:
   # Type: auto (auto-detect), laptop, or desktop
@@ -16,7 +16,7 @@ hardware:
     # Number of vCPU cores to allocate: auto or number
     cores: auto
 
-    # Enable IOMMU/VT-d for device isolation
+    # Planned: the CLI does not enable IOMMU/VT-d.
     iommu: true
 
     # CPU frequency scaling: balanced, performance, powersave
@@ -27,7 +27,7 @@ hardware:
     passthrough: true
 
     # GPU passthrough method:
-    # auto: auto-detect best method based on hardware
+    # auto currently selects virtio in the planning command; no GPU changes are made
     # virtio: virtual GPU (universal, lower perf)
     # sr-iov: SR-IOV passthrough (medium perf, good isolation)
     # vgpu: vGPU passthrough (NVIDIA, high perf)
@@ -38,7 +38,7 @@ hardware:
     devices: []
 
   storage:
-    # Enable full disk encryption
+    # Planned: the CLI does not create encrypted storage.
     encryption: true
 
     # Encryption type: luks2 (recommended), luks1
@@ -54,7 +54,7 @@ wayland:
   # Wayland compositor: auto, hikari, woodland, dwl
   compositor: auto
 
-  # Enable stacking window manager
+  # Planned: the CLI does not install or configure a compositor.
   stacking: true
 
   # Preferred resolution (auto or specific like 1920x1080)
@@ -68,23 +68,23 @@ power:
   # auto: balanced on laptop, performance on desktop
   profile: auto
 
-  # CPU turbo boost: true, false, auto
+  # Planned: the CLI does not manage CPU turbo boost.
   turbo_boost: auto
 
-  # GPU dynamic power management (laptop optimization)
+  # Planned: the CLI does not manage GPU power.
   gpu_dynamic_power: true
 
-  # Display brightness management (laptop)
+  # Planned: the CLI does not manage display brightness.
   adaptive_brightness: true
 
-  # CPU idle states (C-states)
+  # Planned: the CLI does not manage CPU idle states (C-states).
   # balanced: mixed C-states
   # deep: deeper C-states for battery (slight latency)
   # performance: minimal C-states (more power use)
   idle_states: auto
 
 security:
-  # Hardening level: paranoid or standard
+  # Planned: the CLI does not apply a hardening level.
   hardening_level: paranoid
 
   # Enable SELinux (if available on system)
@@ -100,7 +100,7 @@ security:
     - restrict_namespaces: true # Restrict namespaces
     - panic_on_oops: false      # Don't panic on kernel errors
 
-  # Firewall rules
+  # Planned: the CLI does not configure host firewall rules.
   firewall:
     # Default policies: DROP, REJECT, ACCEPT
     input_policy: DROP
@@ -114,7 +114,7 @@ security:
     proxmox_ui_localhost_only: true
 
 network:
-  # Network isolation mode: shared, isolated, air-gap
+  # Planned: the CLI does not configure VM network isolation.
   # shared: normal network access (default)
   # isolated: separate VLAN per VM
   # air-gap: research VM has no network
@@ -140,7 +140,7 @@ storage_encryption:
   # PBKDF2 iterations (higher = more secure, slower)
   pbkdf_iterations: 100000
 
-  # Separate encrypted vaults for compartments
+  # Planned: the CLI does not create encrypted vaults.
   vaults:
     system:
       enabled: true
@@ -169,7 +169,7 @@ storage_encryption:
 microvm:
   enabled: true
 
-  # OPNsense Firewall MicroVM - ALL traffic routed through this
+  # Intended firewall VM; the CLI does not route traffic through it.
   opnsense_firewall:
     enabled: true
     vmid: 50
@@ -192,7 +192,7 @@ microvm:
 
 # Virtual Machine Templates to Deploy
 # Comment out to skip deployment
-# Note: OPNsense MicroVM (if enabled) should deploy first
+# Dependency order is planned only; networking/firewall behavior is not applied.
 vms:
   # OPNsense MicroVM: Lightweight firewall (deploys first if enabled)
   opnsense:
@@ -203,28 +203,28 @@ vms:
   clean:
     enabled: true
     template_file: config/vm-templates/clean-vm.yaml
-    # Routes through OPNsense if enabled
+    # Intended dependency only; no firewall routing is configured.
     depends_on: opnsense
 
   # Gaming VM: GPU-intensive workloads
   gaming:
     enabled: true
     template_file: config/vm-templates/gaming-vm.yaml
-    # Routes through OPNsense if enabled
+    # Intended dependency only; no firewall routing is configured.
     depends_on: opnsense
 
   # Research VM: Isolated malware analysis
   research:
     enabled: true
     template_file: config/vm-templates/research-vm.yaml
-    # Routes through OPNsense if enabled
+    # Intended dependency only; no network isolation is configured.
     depends_on: opnsense
 
   # Tools VM: Network analysis and testing (optional)
   tools:
     enabled: false
     template_file: config/vm-templates/tools-vm.yaml
-    # Routes through OPNsense if enabled
+    # Intended dependency only; no firewall routing is configured.
     depends_on: opnsense
 
 # Advanced / Experimental Options
