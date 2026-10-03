@@ -11,7 +11,7 @@ permissions:
 jobs:
   go:
     name: Go checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -32,7 +32,7 @@ jobs:
   build:
     name: Build Linux ${{ matrix.goarch }}
     needs: go
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -63,7 +63,7 @@ jobs:
 
   python:
     name: Python ${{ matrix.python-version }} checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -94,7 +94,7 @@ jobs:
 
   site:
     name: Static website build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out source
         uses: actions/checkout@v7
