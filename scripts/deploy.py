@@ -10,18 +10,17 @@ def main() -> int:
     """Print the host deployment plan without applying system changes."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-c", "--config", default="config/system.yaml")
-    parser.add_argument("--dry-run", action="store_true", default=True, help="show planned changes (only supported mode)")
     args = parser.parse_args()
     config, _ = load_config(args.config)
     steps = [
-        "validate host requirements and detect hardware",
-        "configure kernel IOMMU and hardening settings",
-        "prepare configured storage encryption vaults",
-        "configure isolated virtual networking and firewall",
+        "host requirement checks and hardware detection are not implemented by deploy",
+        "kernel IOMMU and host hardening changes are not implemented",
+        "encrypted storage setup is not implemented",
+        "network isolation and firewall configuration are not implemented",
     ]
     if config.get("hardware", {}).get("gpu", {}).get("passthrough"):
-        steps.append("prepare GPU passthrough")
-    steps.extend(f"create configured VM {name}" for name, _ in enabled_vms(config))
+        steps.append("GPU strategy planning only; no device changes are made")
+    steps.extend(f"VM {name} is handled separately by deploy-vms.py" for name, _ in enabled_vms(config))
     for number, step in enumerate(steps, start=1):
         print(f"{number}. {step}")
     print("Dry run only; host deployment operations are not yet implemented by this Python command.")

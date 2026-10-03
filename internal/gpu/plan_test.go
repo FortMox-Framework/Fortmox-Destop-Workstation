@@ -17,3 +17,17 @@ func TestPlanRejectsUnknownMethod(t *testing.T) {
 		t.Fatal("expected an unsupported method error")
 	}
 }
+
+func TestRequiresIOMMUOnlyForPhysicalAssignmentMethods(t *testing.T) {
+	for method, want := range map[string]bool{
+		"auto":   false,
+		"virtio": false,
+		"sr-iov": true,
+		"vgpu":   true,
+		"full":   true,
+	} {
+		if got := RequiresIOMMU(method); got != want {
+			t.Errorf("RequiresIOMMU(%q) = %t, want %t", method, got, want)
+		}
+	}
+}

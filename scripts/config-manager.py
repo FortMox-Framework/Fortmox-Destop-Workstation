@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate and summarize the typed system configuration using PyYAML."""
+"""Load and summarize the system YAML using PyYAML."""
 
 import argparse
 

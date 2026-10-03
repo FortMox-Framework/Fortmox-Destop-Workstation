@@ -29,9 +29,6 @@ def main() -> int:
             report(True, f"template exists and parses: {name} ({path})")
         except (OSError, ValueError) as error:
             report(False, f"template invalid for {name}: {error}")
-    if len(config.get("vms", {})) < 5:
-        report(None, f"only {len(config.get('vms', {}))} VM templates are configured; expected five")
-
     if not shutil.which("qm"):
         report(None, "qm unavailable; VM existence and status checks skipped")
     else:

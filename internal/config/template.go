@@ -8,9 +8,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Template holds the header fields of a VM template that the CLI needs for
-// planning and validation. The rest of each template file is not typed yet;
-// it is passed through when the VM is created.
+// Template holds the VM-template fields currently used for planning and basic
+// qm create arguments. Other template keys are parsed but ignored by the CLI.
 type Template struct {
 	VM struct {
 		Name  string `yaml:"name"`

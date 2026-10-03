@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/gpu"
 )
 
 // Severity of a validation finding.
@@ -96,8 +98,8 @@ func (l *Loaded) Validate() []Issue {
 	v.oneOf("hardware.cpu.scaling_governor", c.Hardware.CPU.ScalingGovernor, "auto", "balanced", "performance", "powersave")
 	v.oneOf("hardware.gpu.method", c.Hardware.GPU.Method, "auto", "virtio", "sr-iov", "vgpu", "full")
 	v.oneOf("hardware.storage.encryption_type", c.Hardware.Storage.EncryptionType, "luks2", "luks1")
-	if c.Hardware.GPU.Passthrough && !c.Hardware.CPU.IOMMU && c.Hardware.GPU.Method != "virtio" {
-		v.errf("hardware.cpu.iommu", "GPU passthrough (method %q) needs IOMMU; set hardware.cpu.iommu: true or use method virtio", c.Hardware.GPU.Method)
+	if c.Hardware.GPU.Passthrough && !c.Hardware.CPU.IOMMU && gpu.RequiresIOMMU(c.Hardware.GPU.Method) {
+		v.errf("hardware.cpu.iommu", "GPU method %q needs IOMMU; set hardware.cpu.iommu: true in config and configure IOMMU on the host separately", c.Hardware.GPU.Method)
 	}
 
 	// wayland

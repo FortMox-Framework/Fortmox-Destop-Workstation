@@ -8,7 +8,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from fortmox_scripts import all_templates, enabled_vms, load_config, load_template, qm_create_args
+from fortmox_scripts import all_templates, detect_form_factor, enabled_vms, load_config, load_template, qm_create_args
 
 POWER_SCRIPT = ROOT / "scripts/power-management.py"
 POWER_SPEC = importlib.util.spec_from_file_location("power_management", POWER_SCRIPT)
@@ -51,6 +51,23 @@ class FortmoxScriptTests(unittest.TestCase):
         self.assertEqual(args[args.index("--cores") + 1], "4")
         self.assertEqual(args[args.index("--memory") + 1], "8192")
         self.assertEqual(args[args.index("--scsi0") + 1], "local-lvm:50G")
+
+    def test_qm_args_fall_back_to_vm_key_when_template_name_is_empty(self):
+        template = {
+            "vm": {
+                "name": "-vm",
+                "vmid": 100,
+                "specs": {"cpu": {"cores": 2}, "memory": {"max": 2048}, "disk": {"storage": "local-lvm", "size": "10G"}},
+            }
+        }
+        args = qm_create_args("clean", template)
+        self.assertEqual(args[args.index("--name") + 1], "clean")
+
+    def test_form_factor_uses_known_chassis_and_battery_fallback(self):
+        self.assertEqual(detect_form_factor("10"), "laptop")
+        self.assertEqual(detect_form_factor("3"), "desktop")
+        self.assertEqual(detect_form_factor("0", battery_present=True), "laptop")
+        self.assertEqual(detect_form_factor("0"), "unknown")
 
     def test_input_config_is_not_mutated(self):
         config = copy.deepcopy(self.config)

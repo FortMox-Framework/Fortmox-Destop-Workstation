@@ -1,7 +1,7 @@
 # OPNsense MicroVM Template
+# Design-only: current `fortmox vm create` uses basic resource/disk fields and one default vmbr0 NIC; it does not configure a firewall.
 # Purpose: Lightweight firewall/router for VM traffic isolation
-# All VM traffic routes through this MicroVM
-# Enables traffic filtering, monitoring, and additional isolation
+# Routing, filtering, monitoring, and isolation are not configured by the CLI.
 
 vm:
   name: opnsense-microvm
@@ -39,8 +39,7 @@ vm:
     - type: usb
       device: tablet
 
-  # Network configuration - CRITICAL
-  # OPNsense sits between VMs and external network
+  # Intended network configuration; current VM creation ignores it.
   network:
     interfaces:
       # WAN interface (external network)
@@ -99,10 +98,10 @@ vm:
     enabled: true
     retention: 3
 
-# Guest OS Configuration - OPNsense BSD
+# Guest OS configuration (not applied after VM creation); OPNsense BSD
 guest:
   os: freebsd
-  distro: opnsense-24.1  # Latest stable OPNsense
+  distro: opnsense  # Choose and install a supported release manually.
 
   # OPNsense configuration
   opnsense:
@@ -146,7 +145,7 @@ guest:
           destination: 192.168.100.101  # Gaming VM
           action: block
 
-        # Research VM complete isolation
+        # Intended rule only; not installed by the CLI.
         - name: "Block Research WAN"
           source: 192.168.100.102  # Research VM
           destination: "!192.168.100.1"  # Not to OPNsense
@@ -179,9 +178,9 @@ guest:
       enabled: true
       lan_to_wan: true
 
-    # Traffic monitoring
+    # Intended settings only; the CLI does not configure traffic monitoring.
     monitoring:
-      netflow: true  # Monitor all traffic
+      netflow: true  # Intended only; no traffic monitoring is configured by the CLI.
       logging: true
       log_retention: 30  # Days
 
@@ -241,7 +240,7 @@ firewall_rules:
 
     research_vm:
       ip: 192.168.100.102
-      allowed_destinations: []  # Complete isolation
+      allowed_destinations: []  # Intended only; no isolation is configured by the CLI.
       blocked_destinations: [wan, internet, all_other_vms]
 
     tools_vm:
@@ -272,12 +271,9 @@ monitoring:
 startup_notes: |
   OPNsense MicroVM Configuration:
 
-  1. All VM traffic MUST route through this firewall
-  2. Default routes on VMs point to 192.168.100.1 (this VM)
-  3. VMs cannot communicate directly (OPNsense intercepts)
-  4. All traffic is logged and can be monitored
-  5. Research VM has complete network isolation
-  6. Gaming/Clean VMs can only reach WAN, not each other
+  1. This file is design intent; current VM creation does not route traffic through OPNsense.
+  2. The CLI does not configure WAN/LAN NICs, guest installation, rules, NAT, or logging.
+  3. Independently configure and test traffic paths and isolation before using this VM as a firewall.
 
   Access OPNsense UI:
   - Web UI: https://192.168.100.1 (HTTPS)
@@ -288,7 +284,5 @@ startup_notes: |
   - Password: (set during installation)
 
   Critical:
-  - Update default password first
-  - Configure firewall rules before production use
-  - Enable logging and monitoring
-  - Test traffic isolation before using malware analysis
+  - Install OPNsense and set credentials manually.
+  - Do not trust this VM as a firewall until its interfaces, rules, routing, and isolation are independently tested.

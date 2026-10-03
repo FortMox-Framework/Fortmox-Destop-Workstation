@@ -1,8 +1,7 @@
 # Tools VM Template (Optional)
+# Design-only: current `fortmox vm create` uses only name, VMID, CPU cores, maximum memory, and disk storage/size; it attaches vmbr0.
 # Purpose: Network analysis, penetration testing, security tools
-# Network: Isolated network segment
-# GPU: virtIO
-# Security: Hardened but performance-tuned for testing
+# Network isolation, guest packages, GPU, and hardening settings below are not applied by the CLI.
 
 vm:
   name: tools-vm
@@ -37,7 +36,7 @@ vm:
     - type: usb
       device: tablet
 
-  # Network - ISOLATED
+  # Intended isolated network; current VM creation instead attaches vmbr0.
   network:
     interfaces:
       - id: 0
@@ -89,10 +88,10 @@ vm:
     enabled: true
     retention: 5
 
-# Guest OS Configuration
+# Guest OS configuration (not applied after VM creation)
 guest:
   os: linux
-  distro: ubuntu-22.04
+  distro: ubuntu  # Select and install a supported release manually.
 
   # Tools VM packages
   packages:
@@ -217,9 +216,9 @@ isolated_network:
 
 # Usage Notes
 usage_notes:
-  - "This VM is isolated from the internet"
+  - "Network isolation is not configured by FortMox; verify it independently"
   - "For testing OTHER VMs, use this as attack source"
-  - "All network traffic is contained within isolated network"
+  - "Do not assume network traffic is contained"
   - "Can analyze traffic from Clean VM via network sniffing"
   - "Never expose Tools VM to internet directly"
   - "Keep tools updated regularly"

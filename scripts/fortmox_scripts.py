@@ -103,8 +103,17 @@ def qm_create_args(name: str, template: dict[str, Any]) -> list[str]:
     storage, size = disk.get("storage"), disk.get("size")
     if vmid < 1 or cores < 1 or max_memory < 1 or not storage or not size:
         raise ValueError(f"template for {name} needs a positive vmid, cores, memory and disk")
-    vm_name = str(vm.get("name", name)).removesuffix("-vm")
+    vm_name = str(vm.get("name", name)).removesuffix("-vm") or name
     return ["create", str(vmid), "--name", vm_name, "--cores", str(cores), "--memory", str(max_memory), "--scsi0", f"{storage}:{size}", "--net0", "virtio,bridge=vmbr0,firewall=1", "--ostype", "l26", "--agent", "1"]
+
+
+def detect_form_factor(chassis_type: str = "", battery_present: bool = False) -> str:
+    """Match the Go detector's known DMI types and battery fallback."""
+    if chassis_type in {"8", "9", "10", "11", "12", "14"}:
+        return "laptop"
+    if chassis_type in {"3", "4", "5", "6", "7", "13", "15", "16", "17"}:
+        return "desktop"
+    return "laptop" if battery_present else "unknown"
 
 
 def hardware_report() -> dict[str, Any]:
@@ -121,13 +130,9 @@ def hardware_report() -> dict[str, Any]:
     # Linux exposes Intel and AMD virtualization support as vmx and svm CPU flags.
     groups = list(Path("/sys/kernel/iommu_groups").glob("[0-9]*"))
     chassis = Path("/sys/class/dmi/id/chassis_type")
-    kind = "unknown"
-    if chassis.exists():
-        value = chassis.read_text().strip()
-        # DMI chassis codes 8-14 generally denote portable systems.
-        kind = "laptop" if value in {"8", "9", "10", "11", "12", "14"} else "desktop"
-    elif Path("/sys/class/power_supply/BAT0").exists():
-        kind = "laptop"
+    chassis_type = chassis.read_text().strip() if chassis.exists() else ""
+    battery_present = Path("/sys/class/power_supply/BAT0").exists()
+    kind = detect_form_factor(chassis_type, battery_present)
     gpus = []
     if shutil.which("lspci"):
         output = subprocess.run(["lspci", "-nn"], text=True, capture_output=True, check=False).stdout

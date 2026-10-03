@@ -1,5 +1,5 @@
 // Package config defines the typed schema for config/system.yaml and the VM
-// templates, and validates them before anything touches the system.
+// template fields currently consumed by the CLI.
 package config
 
 import (

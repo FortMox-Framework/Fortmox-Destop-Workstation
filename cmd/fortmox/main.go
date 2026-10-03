@@ -159,7 +159,7 @@ func newVMCommand(path *string) *cobra.Command {
 	var dryRun bool
 	create := &cobra.Command{
 		Use:   "create [vm-name]",
-		Short: "Create enabled VMs from config and templates",
+		Short: "Create enabled VMs using the supported template fields",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			loaded, err := loadValidConfig(*path)

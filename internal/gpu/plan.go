@@ -13,6 +13,14 @@ var methods = map[string]string{
 	"full":   "assign a physical GPU to one VM through VFIO",
 }
 
+// RequiresIOMMU reports whether a method assigns a physical GPU or device function.
+func RequiresIOMMU(method string) bool {
+	if method == "auto" {
+		method = "virtio"
+	}
+	return method == "sr-iov" || method == "vgpu" || method == "full"
+}
+
 // Plan describes a configured strategy without changing host or VM state.
 func Plan(method string, devices []string) ([]string, error) {
 	if method == "auto" {

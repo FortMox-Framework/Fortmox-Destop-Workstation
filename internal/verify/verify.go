@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/config"
+	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/gpu"
 	"github.com/FortMox-Framework/Fortmox-Destop-Workstation/internal/hardware"
 )
 
@@ -47,7 +48,7 @@ func Run(loaded *config.Loaded) []Result {
 	}
 	if detected.IOMMU {
 		add("pass", "IOMMU groups are present")
-	} else if loaded.Config.Hardware.GPU.Passthrough {
+	} else if loaded.Config.Hardware.GPU.Passthrough && gpu.RequiresIOMMU(loaded.Config.Hardware.GPU.Method) {
 		add("fail", "GPU passthrough is configured but no IOMMU groups were found")
 	} else {
 		add("warn", "no IOMMU groups were found")
@@ -78,10 +79,8 @@ func Run(loaded *config.Loaded) []Result {
 		add("warn", "ip is unavailable; network bridge check was skipped")
 	}
 
-	all := 0
 	for _, file := range loaded.Config.VMs {
 		if file.TemplateFile != "" {
-			all++
 			if _, err := os.Stat(filepath.Join(loaded.Root, file.TemplateFile)); err != nil {
 				add("fail", "VM template missing: %s", file.TemplateFile)
 			} else {
@@ -89,10 +88,6 @@ func Run(loaded *config.Loaded) []Result {
 			}
 		}
 	}
-	if all < 5 {
-		add("warn", "only %d VM templates are configured; expected five workload templates", all)
-	}
-
 	qmPath, qmErr := exec.LookPath("qm")
 	if qmErr != nil {
 		add("warn", "qm is unavailable; Proxmox VM existence checks were skipped")

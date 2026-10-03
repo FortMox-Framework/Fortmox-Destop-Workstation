@@ -112,6 +112,31 @@ func TestBadEnum(t *testing.T) {
 	}
 }
 
+func TestAutoGPUDoesNotRequireIOMMU(t *testing.T) {
+	l, err := loadReal(t, func(s string) string {
+		return strings.Replace(s, "    iommu: true", "    iommu: false", 1)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if hasIssue(l.Validate(), Error, "hardware.cpu.iommu") {
+		t.Errorf("auto resolves to virtio and should not require IOMMU: %v", l.Validate())
+	}
+}
+
+func TestPhysicalGPUMethodRequiresConfiguredIOMMU(t *testing.T) {
+	l, err := loadReal(t, func(s string) string {
+		s = strings.Replace(s, "    iommu: true", "    iommu: false", 1)
+		return strings.Replace(s, "    method: auto", "    method: full", 1)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasIssue(l.Validate(), Error, "hardware.cpu.iommu") {
+		t.Errorf("full GPU assignment should require configured IOMMU: %v", l.Validate())
+	}
+}
+
 func TestDependencyOnDisabledVM(t *testing.T) {
 	l, err := loadReal(t, func(s string) string {
 		s = strings.Replace(s, "    enabled: true   # Keep aligned with microvm.opnsense_firewall.enabled", "    enabled: false  # Keep aligned with microvm.opnsense_firewall.enabled", 1)

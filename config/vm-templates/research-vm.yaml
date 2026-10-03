@@ -1,8 +1,7 @@
 # Research VM Template
+# Design-only: current `fortmox vm create` attaches every created VM to vmbr0 and uses only basic resource/disk fields.
 # Purpose: Malware analysis, security research, untrusted code execution
-# Network: Air-gapped (no network)
-# GPU: virtIO only (isolated)
-# Security: Maximum hardening and isolation
+# This VM is NOT air-gapped or hardened by the CLI; do not run untrusted samples without independent isolation.
 
 vm:
   name: research-vm
@@ -40,22 +39,21 @@ vm:
     - type: usb
       device: tablet
 
-  # Network configuration - AIR-GAPPED
+  # Intended network configuration; current VM creation ignores this and attaches vmbr0.
   network:
-    # NO network interfaces by default
-    # For analysis, use isolated bridge if needed
-    interfaces: []  # Empty = no network
+    # Intended network interfaces; current VM creation still attaches vmbr0.
+    interfaces: []
 
-    # If analysis requires isolated network:
+    # Example only; current VM creation ignores bridge and firewall settings:
     # interfaces:
     #   - id: 0
     #     type: virtio
-    #     bridge: vmbr-research  # Isolated bridge, no external access
+    #     bridge: vmbr-research
     #     firewall: true
 
   # Storage
   storage:
-    # Research VM data is in isolated vault
+    # Declarative only; the CLI does not create or attach this vault.
     data_volume: vz-research
 
     # NO shared storage access
@@ -123,10 +121,10 @@ vm:
     # Take snapshot before each analysis session
     auto_snapshot: before_start
 
-# Guest OS Configuration
+# Guest OS configuration (not applied after VM creation)
 guest:
   os: linux
-  distro: debian-12  # Smaller, more secure base
+  distro: debian  # Select and install a supported release manually.
 
   # Minimal packages
   packages:
@@ -232,7 +230,7 @@ research_specific:
   syscall_logging: true
   file_access_logging: true
 
-  # Disconnect from network during analysis
+  # Not implemented; this field does not disconnect the VM.
   network_disconnect_on_suspicious: false
 
   # Automatic recovery on crash
@@ -247,7 +245,7 @@ isolated_network:
   gateway: 192.168.200.1
   dhcp_start: 192.168.200.100
   dhcp_end: 192.168.200.200
-  # All traffic logged but not routed outside
+  # Intended only; no traffic logging or routing is configured by the CLI.
 
 # Logging and Auditing - COMPREHENSIVE
 logging:
@@ -266,11 +264,5 @@ logging:
   log_retention: 30  # Days
   log_rotation: daily
 
-# IMPORTANT SECURITY NOTES:
-# 1. This VM is isolated from all network by default
-# 2. No shared storage - completely separated
-# 3. No inter-VM communication possible
-# 4. Snapshots taken before each analysis session
-# 5. Mandatory air-gap: disconnect power or disconnect network bridge
-# 6. Never assume malware is contained - always verify isolation
-# 7. Consider running on dedicated hardware for sensitive analysis
+# SECURITY: Current VM creation attaches vmbr0 and does not apply the isolation, storage, snapshot, or guest settings above.
+# Independently disconnect/configure networking and verify isolation before running untrusted code.

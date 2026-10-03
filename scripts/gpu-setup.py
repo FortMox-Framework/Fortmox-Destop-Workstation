@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Report configured GPU passthrough; VFIO changes require an explicit plan review."""
+"""Report configured and detected GPUs without changing VFIO or VM settings."""
 
 import argparse
 
@@ -15,7 +15,8 @@ def main() -> int:
     settings = config.get("hardware", {}).get("gpu", {})
     print(f"Passthrough enabled: {settings.get('passthrough', False)}")
     print(f"Method: {settings.get('method', 'auto')}")
-    print(f"Configured devices: {', '.join(settings.get('devices', [])) or 'auto-detect'}")
+    configured = settings.get("devices") or []
+    print(f"Configured devices: {', '.join(configured) if configured else 'none (detected devices are reported below only)'}")
     print("Detected devices:")
     for device in hardware_report()["gpus"]:
         print(f"  {device}")

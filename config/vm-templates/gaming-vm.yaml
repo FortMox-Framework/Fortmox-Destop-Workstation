@@ -1,8 +1,7 @@
 # Gaming VM Template
+# Design-only: current `fortmox vm create` uses only name, VMID, CPU cores, maximum memory, and disk storage/size. Other fields are ignored.
 # Purpose: Gaming and GPU-intensive workloads
-# Network: Normal internet access
-# GPU: Full passthrough (maximum performance)
-# Security: Hardened but performance-optimized
+# Network, GPU assignment, guest software, and security settings are not applied or verified by the CLI.
 
 vm:
   name: gaming-vm
@@ -32,22 +31,20 @@ vm:
     type: spice  # Better for gaming than VNC
     memory: 256M
 
-  # Looking Glass for ultra-low latency remote gaming
+  # Looking Glass intent only; the CLI does not configure or test it.
   looking_glass:
     enabled: true
     # Looking Glass shared memory size (in MB)
-    # Larger = better quality, more memory usage
-    # 32MB minimum, 128MB+ recommended for high resolution
+    # Shared-memory sizing must be selected and configured manually.
     shared_memory: 256
     # ivshmem device configuration
     ivshmem: true
 
   gpu:
     # GPU Passthrough configuration
-    # Method is determined by main config (auto, full, sr-iov, vgpu)
-    # This will be templated based on actual hardware
+    # GPU methods are not consumed by current VM creation.
     type: passthrough
-    device: auto  # Auto-detect available GPU
+    device: auto  # Not resolved or assigned by current VM creation.
     vfio_binding: true
 
     # PCIe settings for gaming performance
@@ -132,10 +129,10 @@ vm:
     enabled: true
     retention: 2
 
-# Guest OS Configuration (Windows or Linux gaming)
+# Guest OS configuration (not applied after VM creation)
 guest:
   os: windows  # or linux
-  distro: windows-11  # or ubuntu-22.04, fedora-39
+  distro: windows  # Select and install a supported release manually.
 
   # Windows-specific packages
   packages_windows:
@@ -218,15 +215,15 @@ guest:
 
 # Detailed GPU Configuration
 gpu_config:
-  # GPU selection (auto-detected, or specify)
+  # GPU selection intent only; not detected or applied during VM creation.
   device: auto
 
   # GPU passthrough method
-  method: auto  # Will use best available: full > vgpu > sr-iov > virtio
+  method: auto  # The separate strategy planner maps auto to virtio; no VM change is made.
 
   # VFIO configuration for full passthrough
   vfio:
-    # GPU device IDs (auto-detected)
+    # GPU device IDs are not auto-detected or consumed by VM creation.
     ids: []
 
     # Audio device passthrough (often paired with GPU)

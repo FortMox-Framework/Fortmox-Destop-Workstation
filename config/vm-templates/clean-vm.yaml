@@ -1,8 +1,7 @@
 # Clean VM Template
+# Design-only: current `fortmox vm create` uses only name, VMID, CPU cores, maximum memory, and disk storage/size. Other fields are ignored.
 # Purpose: Daily work, browsing, general computing
-# Network: Normal internet access
-# GPU: virtIO (isolated)
-# Security: Standard hardening
+# Intended network/GPU/security settings are not applied or verified by the CLI.
 
 vm:
   name: clean-vm
@@ -34,7 +33,7 @@ vm:
     heads: 1
 
   gpu:
-    # Use virtIO for isolated graphics
+    # Intended virtual display; this field is ignored by current VM creation.
     type: virtio
 
   input:
@@ -56,7 +55,7 @@ vm:
 
   # Storage
   storage:
-    data_volume: vz-clean  # Points to clean-vm vault
+    data_volume: vz-clean  # Declarative only; encrypted vaults are not created.
     shared_access:
       - path: /shared/documents
         access: read-write
@@ -108,10 +107,10 @@ vm:
     enabled: true
     retention: 3  # Keep 3 snapshots
 
-# Guest OS Configuration (applied after VM creation)
+# Guest OS configuration (not applied after VM creation)
 guest:
   os: linux
-  distro: ubuntu-22.04  # or debian-12, fedora-39, etc
+  distro: ubuntu  # Select and install a supported release manually.
 
   # System packages to install
   packages:

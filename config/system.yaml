@@ -2,28 +2,28 @@
 # docs/reference/features.md before treating any value as active host behavior.
 
 system:
-  # Type: auto (auto-detect), laptop, or desktop
+  # Validated preference only; current CLI host configuration does not use it.
   type: auto
 
   hostname: proxmox-workstation
   timezone: UTC
 
-  # Enable verbose logging
+  # Planned: current CLI does not read system.debug.
   debug: false
 
 hardware:
   cpu:
-    # Number of vCPU cores to allocate: auto or number
+    # Planned: hardware.cpu.cores is not consumed by current CLI commands.
     cores: auto
 
     # Planned: the CLI does not enable IOMMU/VT-d.
     iommu: true
 
-    # CPU frequency scaling: balanced, performance, powersave
-    scaling_governor: auto  # auto selects based on form factor
+    # Planned: use power.profile for the implemented CPU-governor operation.
+    scaling_governor: auto
 
   gpu:
-    # Enable GPU passthrough
+    # Enables strategy planning only; VM creation does not assign a GPU.
     passthrough: true
 
     # GPU passthrough method:
@@ -34,7 +34,7 @@ hardware:
     # full: full GPU passthrough (best perf, one VM only)
     method: auto
 
-    # List of GPU UUIDs to use (auto-detect if empty)
+    # Optional device labels for the plan; an empty list reports detected display devices.
     devices: []
 
   storage:
@@ -44,13 +44,14 @@ hardware:
     # Encryption type: luks2 (recommended), luks1
     encryption_type: luks2
 
-    # Enable storage compression (slight CPU cost, good for space)
+    # Planned: storage optimization fields are not applied by the CLI.
     compression: false
 
     # TRIM/Discard for SSD optimization
     trim_enabled: true
 
 wayland:
+  # Planned: no Wayland settings are consumed by current CLI commands.
   # Wayland compositor: auto, hikari, woodland, dwl
   compositor: auto
 
@@ -64,8 +65,7 @@ wayland:
   hdr: false
 
 power:
-  # Power profile: auto, balanced, performance
-  # auto: balanced on laptop, performance on desktop
+  # CPU governor plan/apply only; auto selects balanced on detected laptops, performance otherwise.
   profile: auto
 
   # Planned: the CLI does not manage CPU turbo boost.
@@ -84,6 +84,7 @@ power:
   idle_states: auto
 
 security:
+  # Planned: security and host-firewall fields are validated only, not applied.
   # Planned: the CLI does not apply a hardening level.
   hardening_level: paranoid
 
@@ -114,6 +115,7 @@ security:
     proxmox_ui_localhost_only: true
 
 network:
+  # Planned: DNS and VM isolation fields are not applied; VM create uses vmbr0.
   # Planned: the CLI does not configure VM network isolation.
   # shared: normal network access (default)
   # isolated: separate VLAN per VM
@@ -131,6 +133,7 @@ network:
   #   - 8.8.4.4         # Google DNS backup
 
 storage_encryption:
+  # Planned: encryption parameters and vaults are not applied by the CLI.
   # Encryption algorithm: aes-xts-plain64 (recommended)
   cipher: aes-xts-plain64
 
@@ -174,12 +177,11 @@ microvm:
     enabled: true
     vmid: 50
     template_file: config/vm-templates/opnsense-microvm.yaml
-    # Deploy first - all VMs need this for proper isolation
+    # Priority is not consumed; dependency ordering does not configure isolation.
     priority: 1
-    # This VM routes all inter-VM traffic
-    # Enables fine-grained control beyond vLANs
+    # Routing and firewall rules must be configured and tested separately.
 
-  # Additional OPNsense instances for extra isolation (optional)
+  # Planned: additional firewall instances are not created by the CLI.
   additional_firewalls:
     enabled: false
     # Can create multiple OPNsense instances for:
@@ -191,8 +193,7 @@ microvm:
     instances: []
 
 # Virtual Machine Templates to Deploy
-# Comment out to skip deployment
-# Dependency order is planned only; networking/firewall behavior is not applied.
+# Enabled VM entries are planned/created in dependency order; host/network settings are not applied.
 vms:
   # OPNsense MicroVM: Lightweight firewall (deploys first if enabled)
   opnsense:
@@ -229,7 +230,7 @@ vms:
 
 # Advanced / Experimental Options
 advanced:
-  # Enable kernel module loading restrictions
+  # Planned: advanced host settings are not applied by the CLI.
   module_loading_restrictions: true
 
   # Enable secboot if available
@@ -245,7 +246,7 @@ advanced:
 logging:
   level: info  # debug, info, warn, error
 
-  # Log files to rotate
+  # Planned: logging settings are not applied by the CLI.
   syslog: true
   journal: true
 
@@ -254,7 +255,7 @@ logging:
 
 # Backup Configuration
 backup:
-  # Enable regular backups
+  # Planned: backup settings are not applied by the CLI.
   enabled: false
 
   # Backup schedule: daily, weekly, monthly
@@ -268,7 +269,7 @@ backup:
 
 # Development/Testing Options
 development:
-  # Enable testing mode (for configuration validation)
+  # Planned: development settings are not consumed by the CLI.
   testing_mode: false
 
   # Run deployment scripts in dry-run mode
